@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* AdminLTE + Bootstrap styles */
+@import "admin-lte/dist/css/adminlte.css";
+@import "overlayscrollbars/css/OverlayScrollbars.css";
