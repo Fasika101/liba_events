@@ -9,7 +9,7 @@ use App\Models\Ticket;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class TicketController extends Controller
@@ -159,20 +159,24 @@ class TicketController extends Controller
             return back()->withErrors(['event_id' => 'This event is at full capacity.'])->withInput();
         }
 
-        $ticket = Ticket::create([
-            'event_id'      => $event->id,
-            'agent_id'      => auth()->id(),
-            'buyer_name'    => $data['buyer_name'],
-            'buyer_email'   => $data['buyer_email'] ?? null,
-            'buyer_phone'   => $data['buyer_phone'] ?? null,
-            'buyer_address'   => $data['buyer_address'] ?? null,
-            'buyer_occupation' => $data['buyer_occupation'] ?? null,
-            'yeneshaa_abat'  => (bool) (int) $data['yeneshaa_abat'],
-            'price_paid'    => $event->price,
-            'currency'      => $event->currency,
-            'ticket_code'   => strtoupper(Str::random(4)) . '-' . strtoupper(Str::random(4)) . '-' . strtoupper(Str::random(4)),
-            'sold_at'       => now(),
-        ]);
+        $ticket = DB::transaction(function () use ($data, $event) {
+            $company = $event->company;
+
+            return Ticket::create([
+                'event_id'         => $event->id,
+                'agent_id'         => auth()->id(),
+                'buyer_name'       => $data['buyer_name'],
+                'buyer_email'      => $data['buyer_email'] ?? null,
+                'buyer_phone'      => $data['buyer_phone'] ?? null,
+                'buyer_address'    => $data['buyer_address'] ?? null,
+                'buyer_occupation' => $data['buyer_occupation'] ?? null,
+                'yeneshaa_abat'    => (bool) (int) $data['yeneshaa_abat'],
+                'price_paid'       => $event->price,
+                'currency'         => $event->currency,
+                'ticket_code'      => Ticket::generateCode($event->company_id, $company->name),
+                'sold_at'          => now(),
+            ]);
+        });
 
         return redirect()->route('agent.tickets.receipt', $ticket);
     }

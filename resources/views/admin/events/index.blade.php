@@ -94,8 +94,8 @@
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-xs btn-outline-danger"
-                                            onclick="return confirm('Delete this event? This cannot be undone.')">
-                                        <i class="fas fa-trash"></i>
+                                            onclick="return confirm('Archive this event? It will be hidden from the list. All ticket sales and buyer records will be kept.')">
+                                        <i class="fas fa-archive"></i> Archive
                                     </button>
                                 </form>
                             </td>

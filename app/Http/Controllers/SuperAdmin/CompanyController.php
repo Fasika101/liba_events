@@ -141,7 +141,7 @@ class CompanyController extends Controller
     public function destroy(Company $company)
     {
         DB::transaction(function () use ($company) {
-            Event::query()->where('company_id', $company->id)->delete();
+            Event::withTrashed()->where('company_id', $company->id)->forceDelete();
             User::query()->where('company_id', $company->id)->delete();
             $company->delete();
         });

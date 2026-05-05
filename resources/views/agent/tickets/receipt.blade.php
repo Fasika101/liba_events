@@ -302,20 +302,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script>
-        // ── Build QR code content ──
-        var qrText = [
-            "{{ config('app.name') }} TICKET",
-            "Code: {{ $ticket->ticket_code }}",
-            "Event: {{ addslashes($ticket->event->title ?? '') }}",
-            "Buyer: {{ addslashes($ticket->buyer_name) }}",
-            "Date: {{ $ticket->event && $ticket->event->start_at ? \App\Helpers\EthiopianCalendar::format($ticket->event->start_at, false, false) : '' }}",
-            "Paid: {{ $ticket->price_paid }} {{ $ticket->currency }}",
-            "Agent: {{ addslashes($ticket->agent->name ?? '') }}",
-            "Issued: {{ optional($ticket->sold_at)->format('Y-m-d H:i') }}"
-        ].join('\n');
-
+        // ── QR encodes just the ticket code so door scanners can read it instantly ──
         new QRCode(document.getElementById('qr-code'), {
-            text:           qrText,
+            text:           "{{ $ticket->ticket_code }}",
             width:          130,
             height:         130,
             colorDark:      '#1a3c6e',

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AgentController;
+use App\Http\Controllers\Admin\CheckInController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
@@ -69,8 +70,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('customers/data', [AdminCustomerController::class, 'data'])->name('customers.data');
         Route::get('customers/export', [AdminCustomerController::class, 'export'])->name('customers.export');
 
+        Route::get('checkin',                                           [CheckInController::class, 'index'])->name('checkin.index');
+        Route::get('checkin/{event}',                                   [CheckInController::class, 'show'])->name('checkin.show');
+        Route::post('checkin/{event}/verify',                           [CheckInController::class, 'verify'])->name('checkin.verify');
+
         Route::get('ticket-sales',                                      [AdminTicketSalesController::class, 'index'])->name('ticket-sales.index');
         Route::get('ticket-sales/{event}/export',                       [AdminTicketSalesController::class, 'export'])->name('ticket-sales.export');
+        Route::post('ticket-sales/{event}/export',                      [AdminTicketSalesController::class, 'exportSelected'])->name('ticket-sales.export-selected');
         Route::get('ticket-sales/{event}/tickets/{ticket}/edit',        [AdminTicketSalesController::class, 'edit'])->name('ticket-sales.tickets.edit');
         Route::put('ticket-sales/{event}/tickets/{ticket}',             [AdminTicketSalesController::class, 'update'])->name('ticket-sales.tickets.update');
         Route::get('ticket-sales/{event}',                              [AdminTicketSalesController::class, 'show'])->name('ticket-sales.show');
@@ -81,6 +87,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('tickets/data', [AgentTicketController::class, 'data'])->name('tickets.data');
         Route::resource('tickets', AgentTicketController::class)->only(['index', 'create', 'store']);
         Route::get('tickets/{ticket}/receipt', [AgentTicketController::class, 'receipt'])->name('tickets.receipt');
+
+        Route::get('checkin',                [CheckInController::class, 'index'])->name('checkin.index');
+        Route::get('checkin/{event}',        [CheckInController::class, 'show'])->name('checkin.show');
+        Route::post('checkin/{event}/verify',[CheckInController::class, 'verify'])->name('checkin.verify');
     });
 
     Route::middleware('company.active')->group(function () {

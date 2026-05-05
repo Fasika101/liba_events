@@ -35,7 +35,7 @@ class AppServiceProvider extends ServiceProvider
 
         Route::bind('event', function (string $value) {
             $user = auth()->user();
-            $event = Event::whereKey($value)->firstOrFail();
+            $event = Event::withTrashed()->whereKey($value)->firstOrFail();
 
             if (! $user) {
                 return $event;

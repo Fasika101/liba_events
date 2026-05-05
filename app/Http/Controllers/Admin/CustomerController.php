@@ -23,7 +23,7 @@ class CustomerController extends Controller
 
         $totalUnique = Ticket::whereNotNull('buyer_phone')
             ->where('buyer_phone', '!=', '')
-            ->whereHas('event', fn ($q) => $q->where('company_id', $companyId))
+            ->whereHas('event', fn ($q) => $q->withTrashed()->where('company_id', $companyId))
             ->distinct('buyer_phone')
             ->count('buyer_phone');
 
@@ -42,7 +42,7 @@ class CustomerController extends Controller
         $latestIds = Ticket::select(DB::raw('MAX(id) as id'))
             ->whereNotNull('buyer_phone')
             ->where('buyer_phone', '!=', '')
-            ->whereHas('event', fn ($q) => $q->where('company_id', $companyId))
+            ->whereHas('event', fn ($q) => $q->withTrashed()->where('company_id', $companyId))
             ->groupBy('buyer_phone');
 
         $recordsTotal = Ticket::query()
@@ -127,7 +127,7 @@ class CustomerController extends Controller
         $latestIds = Ticket::select(DB::raw('MAX(id) as id'))
             ->whereNotNull('buyer_phone')
             ->where('buyer_phone', '!=', '')
-            ->whereHas('event', fn ($q) => $q->where('company_id', $companyId))
+            ->whereHas('event', fn ($q) => $q->withTrashed()->where('company_id', $companyId))
             ->groupBy('buyer_phone');
 
         $query = $this->customersDataQuery($latestIds, $companyId);
@@ -146,7 +146,7 @@ class CustomerController extends Controller
     {
         return Ticket::query()
             ->select('tickets.*')
-            ->with(['event', 'agent'])
+            ->with(['event' => fn ($q) => $q->withTrashed(), 'agent'])
             ->joinSub($latestIds, 'latest', fn($j) => $j->on('tickets.id', '=', 'latest.id'))
             ->leftJoin('events', 'tickets.event_id', '=', 'events.id')
             ->where('events.company_id', $companyId);

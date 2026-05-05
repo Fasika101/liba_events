@@ -662,11 +662,12 @@
                         <li class="nav-header">ADMIN</li>
 
                         @foreach ([
-                            ['admin.dashboard',       'fa-tachometer-alt', 'Dashboard'],
-                            ['admin.events.index',    'fa-calendar-alt',   'Events'],
-                            ['admin.agents.index',    'fa-users',          'Agents'],
-                            ['admin.ticket-sales.index','fa-chart-bar',    'Ticket Sales'],
-                            ['admin.customers.index', 'fa-address-book',   'Customers'],
+                            ['admin.dashboard',         'fa-tachometer-alt', 'Dashboard'],
+                            ['admin.events.index',      'fa-calendar-alt',   'Events'],
+                            ['admin.agents.index',      'fa-users',          'Agents'],
+                            ['admin.ticket-sales.index','fa-chart-bar',      'Ticket Sales'],
+                            ['admin.customers.index',   'fa-address-book',   'Customers'],
+                            ['admin.checkin.index',     'fa-qrcode',         'Check-In'],
                         ] as [$route, $icon, $label])
                             <li class="nav-item">
                                 <a href="{{ route($route) }}"
@@ -684,6 +685,7 @@
                             ['agent.dashboard',       'fa-tachometer-alt', 'Dashboard'],
                             ['agent.tickets.create',  'fa-plus-circle',    'Sell Ticket'],
                             ['agent.tickets.index',   'fa-ticket-alt',     'My Tickets'],
+                            ['agent.checkin.index',   'fa-qrcode',         'Check-In'],
                         ] as [$route, $icon, $label])
                             <li class="nav-item">
                                 <a href="{{ route($route) }}"

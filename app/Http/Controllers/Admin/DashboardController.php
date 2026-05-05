@@ -28,7 +28,7 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
-        $ticketQuery = Ticket::whereHas('event', fn ($q) => $q->where('company_id', $companyId));
+        $ticketQuery = Ticket::whereHas('event', fn ($q) => $q->withTrashed()->where('company_id', $companyId));
 
         $summary = [
             'events'  => Event::forCompany($companyId)->count(),

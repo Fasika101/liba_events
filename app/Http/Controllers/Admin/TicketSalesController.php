@@ -16,7 +16,8 @@ class TicketSalesController extends Controller
     {
         $companyId = auth()->user()->requireCompanyId();
 
-        $events = Event::forCompany($companyId)
+        $events = Event::withTrashed()
+            ->forCompany($companyId)
             ->withCount('tickets')
             ->withSum('tickets', 'price_paid')
             ->orderByDesc('tickets_count')
@@ -46,17 +47,37 @@ class TicketSalesController extends Controller
         return view('admin.ticket-sales.show', compact('event', 'tickets', 'totalRevenue', 'agentSummary'));
     }
 
-    /** Export buyers for a single event as Excel */
+    /** Export ALL buyers for a single event as Excel */
     public function export(Event $event)
     {
-        $tickets  = Ticket::with('agent')
+        $tickets = Ticket::with('agent')
             ->where('event_id', $event->id)
             ->latest('sold_at')
             ->get();
 
+        $event->loadMissing('company');
         $filename = 'buyers-' . \Illuminate\Support\Str::slug($event->title) . '-' . now()->format('Y-m-d') . '.xlsx';
 
         return Excel::download(new EventBuyersExport($event, $tickets), $filename);
+    }
+
+    /** Export with chosen columns (POST with columns[]) */
+    public function exportSelected(Request $request, Event $event)
+    {
+        $columns = array_filter((array) $request->input('columns', []));
+
+        $tickets = Ticket::with('agent')
+            ->where('event_id', $event->id)
+            ->latest('sold_at')
+            ->get();
+
+        $event->loadMissing('company');
+
+        $colCount = count($columns) ?: 'all';
+        $filename = 'buyers-' . \Illuminate\Support\Str::slug($event->title)
+                  . '-cols-' . $colCount . '-' . now()->format('Y-m-d') . '.xlsx';
+
+        return Excel::download(new EventBuyersExport($event, $tickets, $columns), $filename);
     }
 
     public function edit(Event $event, Ticket $ticket)

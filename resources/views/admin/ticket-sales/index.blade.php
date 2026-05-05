@@ -81,12 +81,15 @@
                                 @if($isFull)
                                     <span class="badge badge-danger ml-1">FULL</span>
                                 @endif
+                                @if($event->trashed())
+                                    <span class="badge badge-secondary ml-1"><i class="fas fa-archive mr-1"></i>Archived</span>
+                                @endif
                             </h5>
                             <div class="text-muted small">
                                 <i class="fas fa-calendar mr-1"></i>@ethdate($event->start_at)
                                 &nbsp;·&nbsp;
                                 <i class="fas fa-tag mr-1"></i>{{ $event->price }} {{ $event->currency }}
-                                @if($event->status !== 'active')
+                                @if(!$event->trashed() && $event->status !== 'active')
                                     &nbsp;·&nbsp;
                                     <span class="badge badge-{{ $event->status === 'draft' ? 'secondary' : 'dark' }}">
                                         {{ ucfirst($event->status) }}

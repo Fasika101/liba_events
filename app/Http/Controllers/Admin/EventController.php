@@ -94,13 +94,9 @@ class EventController extends Controller
      */
     public function destroy(Event $event)
     {
-        if ($event->photo_path) {
-            Storage::disk('public')->delete($event->photo_path);
-        }
-
         $event->delete();
 
-        return redirect()->route('admin.events.index')->with('status', 'Event removed.');
+        return redirect()->route('admin.events.index')->with('status', 'Event archived. All ticket sales and buyer records have been preserved.');
     }
 
     protected function validatedData(Request $request, ?int $eventId = null): array
