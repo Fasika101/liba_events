@@ -267,6 +267,8 @@
         </div>
     </div>
 
+    @unless($events->isEmpty())
+
     {{-- Confirmation Modal --}}
     <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" data-backdrop="static">
         <div class="modal-dialog modal-lg" role="document">
@@ -621,4 +623,6 @@
         });
     </script>
     @endpush
+
+    @endunless
 </x-app-layout>
