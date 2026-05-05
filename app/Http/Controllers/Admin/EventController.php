@@ -32,7 +32,7 @@ class EventController extends Controller
     public function create()
     {
         return view('admin.events.create', [
-            'event' => new Event(),
+            'event' => new Event,
         ]);
     }
 
@@ -107,7 +107,7 @@ class EventController extends Controller
             'price' => ['required', 'numeric', 'min:0'],
             'currency' => ['required', 'string', 'size:3'],
             'start_at' => ['required', 'date'],
-            'end_at' => ['nullable', 'date', 'after_or_equal:start_at'],
+            'end_at' => ['required', 'date', 'after_or_equal:start_at'],
             'capacity' => ['nullable', 'integer', 'min:1'],
             'status' => ['required', 'string', 'in:active,draft,archived'],
             'photo' => ['nullable', 'image', 'max:2048'],

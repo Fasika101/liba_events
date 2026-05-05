@@ -46,7 +46,12 @@
                                 $e->id => [
                                     'title'       => $e->title,
                                     'photo'       => $e->photo_path ? asset('storage/'.$e->photo_path) : null,
-                                    'date'        => $e->start_at ? \App\Helpers\EthiopianCalendar::format($e->start_at) : null,
+                                    'date'        => ($e->end_at ?? $e->start_at)
+                                        ? \App\Helpers\EthiopianCalendar::format($e->end_at ?? $e->start_at)
+                                        : null,
+                                    'date_starts' => ($e->end_at && $e->start_at && $e->end_at->ne($e->start_at))
+                                        ? \App\Helpers\EthiopianCalendar::format($e->start_at)
+                                        : null,
                                     'price'       => (string) $e->price,
                                     'price_label' => $e->price . ' ' . $e->currency,
                                     'currency'    => $e->currency,
@@ -111,9 +116,11 @@
                                         <div class="col d-flex align-items-center px-3 py-2">
                                             <div>
                                                 <div class="font-weight-bold" id="previewTitle"></div>
-                                                <div class="text-muted small mt-1">
-                                                    <i class="fas fa-calendar mr-1"></i><span id="previewDate"></span>
+                                                <div class="small mt-1">
+                                                    <i class="fas fa-calendar mr-1 text-primary"></i>
+                                                    <span id="previewDate" class="font-weight-bold text-dark"></span>
                                                 </div>
+                                                <div id="previewStartsRow" class="text-muted smaller mt-1" style="display:none;font-size:.8rem;"></div>
                                                 <div class="mt-1">
                                                     <span class="badge badge-success" id="previewPrice" style="font-size:.9rem;"></span>
                                                     <span class="badge badge-secondary ml-1" id="previewCapacity" style="display:none;font-size:.85rem;"></span>
@@ -294,8 +301,10 @@
                                     <h6 class="text-uppercase text-muted mb-1" style="font-size:.7rem;letter-spacing:.07em;">Event</h6>
                                     <div class="font-weight-bold" id="cm-title" style="font-size:1.05rem;"></div>
                                     <div class="text-muted small mt-1">
-                                        <i class="fas fa-calendar mr-1"></i><span id="cm-date"></span>
+                                        <i class="fas fa-calendar mr-1"></i>
+                                        <span id="cm-date" class="font-weight-bold text-dark"></span>
                                     </div>
+                                    <div id="cm-starts-row" class="text-muted mt-1" style="display:none;font-size:.75rem;"></div>
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -391,7 +400,15 @@
             }
 
             document.getElementById('previewTitle').textContent = d.title;
-            document.getElementById('previewDate').textContent  = d.date;
+            document.getElementById('previewDate').textContent = d.date || '—';
+            var ps = document.getElementById('previewStartsRow');
+            if (d.date_starts) {
+                ps.textContent = 'Starts: ' + d.date_starts;
+                ps.style.display = '';
+            } else {
+                ps.textContent = '';
+                ps.style.display = 'none';
+            }
             document.getElementById('previewPrice').textContent = d.price_label;
             // Capacity badge
             var capBadge = document.getElementById('previewCapacity');
@@ -467,7 +484,15 @@
 
             // Populate modal
             document.getElementById('cm-title').textContent = d.title;
-            document.getElementById('cm-date').textContent  = d.date;
+            document.getElementById('cm-date').textContent = d.date || '—';
+            var cmStarts = document.getElementById('cm-starts-row');
+            if (d.date_starts) {
+                cmStarts.textContent = 'Starts: ' + d.date_starts;
+                cmStarts.style.display = '';
+            } else {
+                cmStarts.textContent = '';
+                cmStarts.style.display = 'none';
+            }
             document.getElementById('cm-price').textContent = d.price + ' ' + d.currency;
             document.getElementById('cm-name').textContent  = buyerName.value.trim();
             document.getElementById('cm-email').textContent = document.getElementById('buyerEmail').value || '—';

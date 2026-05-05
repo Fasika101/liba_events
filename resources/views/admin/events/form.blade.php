@@ -44,16 +44,66 @@
 </div>
 
 {{-- ── Ethiopian Date Pickers ───────────────────────────────────────────── --}}
-<div class="card card-outline card-primary mb-3">
-    <div class="card-header py-2">
-        <h6 class="mb-0 font-weight-bold text-primary">
-            <i class="fas fa-calendar-alt mr-1"></i> Event Date (Ethiopian Calendar)
+<div class="card card-outline card-warning mb-3">
+    <div class="card-header py-2 bg-light">
+        <h6 class="mb-0 font-weight-bold text-dark">
+            <i class="fas fa-calendar-check mr-2 text-warning"></i> Event dates <span class="text-danger">*</span>
         </h6>
+        <small class="text-muted d-block mt-1 mb-0 font-weight-normal">
+            <strong class="text-dark">End date</strong> is the main date shown on buyer tickets. Set the range so the end day matches the event attendees should use.
+        </small>
     </div>
     <div class="card-body py-3">
 
+        {{-- End Date (priority — shown on tickets) --}}
+        <label class="font-weight-bold">End date (event day on ticket) <span class="text-danger">*</span></label>
+        @error('end_at') <div class="text-danger small mb-1">{{ $message }}</div> @enderror
+        <div class="form-row align-items-end mb-1">
+            <div class="form-group col-3 col-md-2 mb-2">
+                <label class="small text-muted">Day</label>
+                <select id="eth_day_end" class="form-control form-control-sm" onchange="ethConvert('end')">
+                    <option value="">Day</option>
+                    @for ($d = 1; $d <= 30; $d++)
+                        <option value="{{ $d }}" @selected(old('eth_day_end', $ethEnd['day'] ?? '') == $d)>{{ $d }}</option>
+                    @endfor
+                </select>
+            </div>
+            <div class="form-group col-5 col-md-4 mb-2">
+                <label class="small text-muted">Month</label>
+                <select id="eth_month_end" class="form-control form-control-sm" onchange="ethConvert('end')">
+                    <option value="">Month</option>
+                    @foreach ($ethMonths as $num => $name)
+                        <option value="{{ $num }}" @selected(old('eth_month_end', $ethEnd['month'] ?? '') == $num)>
+                            {{ $num }}. {{ $name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group col-4 col-md-3 mb-2">
+                <label class="small text-muted">Year (E.C.)</label>
+                <select id="eth_year_end" class="form-control form-control-sm" onchange="ethConvert('end')">
+                    <option value="">Year</option>
+                    @foreach ($ethYears as $y)
+                        <option value="{{ $y }}" @selected(old('eth_year_end', $ethEnd['year'] ?? '') == $y)>{{ $y }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-12 col-md-3 mb-2 text-muted small d-flex align-items-center" style="margin-top:-4px">
+                <i class="fas fa-exchange-alt mr-1 text-primary"></i>
+                <span id="greg_end_preview" class="font-italic">
+                    {{ $ethEnd ? '= ' . $event->end_at->format('M d, Y') . ' G.C.' : '' }}
+                </span>
+            </div>
+        </div>
+        <input type="hidden" name="end_at" id="end_at_hidden"
+               value="{{ old('end_at', optional($event->end_at)->format('Y-m-d')) }}">
+
+        <hr class="my-3">
+
         {{-- Start Date --}}
-        <label class="font-weight-bold">Start Date <span class="text-danger">*</span></label>
+        <label class="font-weight-bold mt-1">Start date <span class="text-danger">*</span>
+            <small class="text-muted font-weight-normal">(when the event period begins)</small>
+        </label>
         @error('start_at') <div class="text-danger small mb-1">{{ $message }}</div> @enderror
         <div class="form-row align-items-end mb-1">
             <div class="form-group col-3 col-md-2 mb-2">
@@ -95,48 +145,6 @@
         {{-- Hidden Gregorian value submitted to server --}}
         <input type="hidden" name="start_at" id="start_at_hidden"
                value="{{ old('start_at', optional($event->start_at)->format('Y-m-d')) }}">
-
-        {{-- End Date --}}
-        <label class="font-weight-bold mt-2">End Date <small class="text-muted font-weight-normal">(optional)</small></label>
-        <div class="form-row align-items-end mb-1">
-            <div class="form-group col-3 col-md-2 mb-2">
-                <label class="small text-muted">Day</label>
-                <select id="eth_day_end" class="form-control form-control-sm" onchange="ethConvert('end')">
-                    <option value="">Day</option>
-                    @for ($d = 1; $d <= 30; $d++)
-                        <option value="{{ $d }}" @selected(old('eth_day_end', $ethEnd['day'] ?? '') == $d)>{{ $d }}</option>
-                    @endfor
-                </select>
-            </div>
-            <div class="form-group col-5 col-md-4 mb-2">
-                <label class="small text-muted">Month</label>
-                <select id="eth_month_end" class="form-control form-control-sm" onchange="ethConvert('end')">
-                    <option value="">Month</option>
-                    @foreach ($ethMonths as $num => $name)
-                        <option value="{{ $num }}" @selected(old('eth_month_end', $ethEnd['month'] ?? '') == $num)>
-                            {{ $num }}. {{ $name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="form-group col-4 col-md-3 mb-2">
-                <label class="small text-muted">Year (E.C.)</label>
-                <select id="eth_year_end" class="form-control form-control-sm" onchange="ethConvert('end')">
-                    <option value="">Year</option>
-                    @foreach ($ethYears as $y)
-                        <option value="{{ $y }}" @selected(old('eth_year_end', $ethEnd['year'] ?? '') == $y)>{{ $y }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-12 col-md-3 mb-2 text-muted small d-flex align-items-center" style="margin-top:-4px">
-                <i class="fas fa-exchange-alt mr-1 text-primary"></i>
-                <span id="greg_end_preview" class="font-italic">
-                    {{ $ethEnd ? '= ' . $event->end_at->format('M d, Y') . ' G.C.' : '' }}
-                </span>
-            </div>
-        </div>
-        <input type="hidden" name="end_at" id="end_at_hidden"
-               value="{{ old('end_at', optional($event->end_at)->format('Y-m-d')) }}">
 
     </div>
 </div>

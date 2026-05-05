@@ -218,9 +218,25 @@
                     <div class="col-sm-6 mb-3">
                         <div class="info-label"><i class="fas fa-calendar mr-1"></i> Event Date</div>
                         <div class="info-value">
-                            {{ $ticket->event && $ticket->event->start_at ? \App\Helpers\EthiopianCalendar::format($ticket->event->start_at) : '—' }}
-                            @if ($ticket->event && $ticket->event->end_at && $ticket->event->end_at->ne($ticket->event->start_at))
-                                <span class="text-muted"> – {{ \App\Helpers\EthiopianCalendar::format($ticket->event->end_at) }}</span>
+                            @if ($ticket->event)
+                                @php
+                                    $ev = $ticket->event;
+                                    $primary = $ev->end_at ?? $ev->start_at;
+                                @endphp
+                                @if ($primary)
+                                    <strong class="d-block" style="font-size:1.1rem;letter-spacing:.01em;">
+                                        {{ \App\Helpers\EthiopianCalendar::format($primary) }}
+                                    </strong>
+                                    @if ($ev->end_at && $ev->start_at && $ev->end_at->ne($ev->start_at))
+                                        <span class="text-muted small d-block mt-1">
+                                            Starts: {{ \App\Helpers\EthiopianCalendar::format($ev->start_at) }}
+                                        </span>
+                                    @endif
+                                @else
+                                    —
+                                @endif
+                            @else
+                                —
                             @endif
                         </div>
                     </div>
