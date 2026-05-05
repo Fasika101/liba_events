@@ -36,6 +36,42 @@
                         </div>
                     @endif
 
+                    @error('send_receipt')
+                        <div class="alert alert-danger alert-dismissible">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            <i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}
+                        </div>
+                    @enderror
+
+                    @if (session('status'))
+                        <div class="alert alert-success alert-dismissible">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            <i class="fas fa-check-circle mr-1"></i> {{ session('status') }}
+                        </div>
+                    @endif
+
+                    <div class="d-flex flex-wrap align-items-center mb-3 pb-3 border-bottom" style="gap:.5rem;">
+                        <span class="text-muted small mr-2 d-none d-sm-inline">Buyer ticket:</span>
+                        <a href="{{ route('admin.ticket-sales.tickets.receipt', [$event, $ticket]) }}"
+                           target="_blank" rel="noopener"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-ticket-alt mr-1"></i> Open — print / save PNG
+                        </a>
+                        <form method="POST"
+                              action="{{ route('admin.ticket-sales.tickets.send-receipt', [$event, $ticket]) }}"
+                              class="d-inline"
+                              onsubmit="return confirm('Send the ticket receipt email to this buyer?');">
+                            @csrf
+                            <button type="submit"
+                                    class="btn btn-sm btn-outline-info"
+                                    @disabled(! $ticket->buyer_email)
+                                    title="{{ $ticket->buyer_email ? 'Email receipt summary' : 'Add buyer email below first' }}">
+                                <i class="fas fa-envelope mr-1"></i> Email buyer
+                            </button>
+                        </form>
+                        <span class="text-muted small">{{ $ticket->buyer_email ? $ticket->buyer_email : 'No email yet — fill in below to enable send.' }}</span>
+                    </div>
+
                     <div class="alert alert-light border small mb-4">
                         <div class="row">
                             <div class="col-md-6 mb-2 mb-md-0">

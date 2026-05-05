@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exports\EventBuyersExport;
 use App\Http\Controllers\Controller;
+use App\Mail\TicketReceiptMail;
 use App\Models\Event;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
 
 class TicketSalesController extends Controller
@@ -38,13 +40,48 @@ class TicketSalesController extends Controller
             ->get();
 
         $totalRevenue = $tickets->sum('price_paid');
-        $agentSummary = $tickets->groupBy('agent_id')->map(fn($t) => [
-            'name'    => $t->first()->agent->name ?? 'Unknown',
-            'count'   => $t->count(),
+        $agentSummary = $tickets->groupBy('agent_id')->map(fn ($t) => [
+            'name' => $t->first()->agent->name ?? 'Unknown',
+            'count' => $t->count(),
             'revenue' => $t->sum('price_paid'),
         ])->sortByDesc('count');
 
         return view('admin.ticket-sales.show', compact('event', 'tickets', 'totalRevenue', 'agentSummary'));
+    }
+
+    /**
+     * Printable / save-as-image receipt (same view as agents, scoped to company events).
+     */
+    public function receipt(Event $event, Ticket $ticket)
+    {
+        $this->authorizeTicketInEvent($event, $ticket);
+
+        $ticket->load('event', 'agent');
+
+        return view('agent.tickets.receipt', [
+            'ticket' => $ticket,
+            'ticketReceiptViewer' => 'admin',
+        ]);
+    }
+
+    /**
+     * Email a summary receipt to the buyer (requires buyer email on the ticket).
+     */
+    public function sendReceiptEmail(Event $event, Ticket $ticket)
+    {
+        $this->authorizeTicketInEvent($event, $ticket);
+
+        $ticket->load('event', 'agent');
+
+        if (! $ticket->buyer_email) {
+            return back()->withErrors([
+                'send_receipt' => 'This ticket has no buyer email. Add one and save the ticket, then try again.',
+            ]);
+        }
+
+        Mail::to($ticket->buyer_email)->send(new TicketReceiptMail($ticket));
+
+        return back()->with('status', 'Receipt sent to '.$ticket->buyer_email.'.');
     }
 
     /** Export ALL buyers for a single event as Excel */
@@ -56,7 +93,7 @@ class TicketSalesController extends Controller
             ->get();
 
         $event->loadMissing('company');
-        $filename = 'buyers-' . \Illuminate\Support\Str::slug($event->title) . '-' . now()->format('Y-m-d') . '.xlsx';
+        $filename = 'buyers-'.\Illuminate\Support\Str::slug($event->title).'-'.now()->format('Y-m-d').'.xlsx';
 
         return Excel::download(new EventBuyersExport($event, $tickets), $filename);
     }
@@ -74,55 +111,55 @@ class TicketSalesController extends Controller
         $event->loadMissing('company');
 
         $colCount = count($columns) ?: 'all';
-        $filename = 'buyers-' . \Illuminate\Support\Str::slug($event->title)
-                  . '-cols-' . $colCount . '-' . now()->format('Y-m-d') . '.xlsx';
+        $filename = 'buyers-'.\Illuminate\Support\Str::slug($event->title)
+                  .'-cols-'.$colCount.'-'.now()->format('Y-m-d').'.xlsx';
 
         return Excel::download(new EventBuyersExport($event, $tickets, $columns), $filename);
     }
 
     public function edit(Event $event, Ticket $ticket)
     {
-        $this->ensureTicketForEvent($event, $ticket);
+        $this->authorizeTicketInEvent($event, $ticket);
 
         return view('admin.ticket-sales.edit', compact('event', 'ticket'));
     }
 
     public function update(Request $request, Event $event, Ticket $ticket)
     {
-        $this->ensureTicketForEvent($event, $ticket);
+        $this->authorizeTicketInEvent($event, $ticket);
 
         $data = $request->validate([
-            'buyer_name'    => ['required', 'string', 'max:255'],
-            'buyer_email'   => ['nullable', 'email', 'max:255'],
-            'buyer_phone'   => ['required', 'regex:/^\+251[0-9]{9}$/'],
-            'buyer_address'   => ['nullable', 'string', 'max:500'],
+            'buyer_name' => ['required', 'string', 'max:255'],
+            'buyer_email' => ['nullable', 'email', 'max:255'],
+            'buyer_phone' => ['required', 'regex:/^\+251[0-9]{9}$/'],
+            'buyer_address' => ['nullable', 'string', 'max:500'],
             'buyer_occupation' => ['nullable', 'string', 'max:150'],
-            'yeneshaa_abat'    => ['required', 'in:0,1'],
-            'price_paid'    => ['required', 'numeric', 'min:0'],
-            'currency'      => ['required', 'string', 'size:3'],
+            'yeneshaa_abat' => ['required', 'in:0,1'],
+            'price_paid' => ['required', 'numeric', 'min:0'],
+            'currency' => ['required', 'string', 'size:3'],
         ], [
             'buyer_phone.required' => 'Phone number is required.',
-            'buyer_phone.regex'    => 'Phone number must be exactly 9 digits after +251 (e.g. +251912345678).',
+            'buyer_phone.regex' => 'Phone number must be exactly 9 digits after +251 (e.g. +251912345678).',
             'yeneshaa_abat.required' => 'Please select Yes or No for Yeneshaa Abat.',
-            'yeneshaa_abat.in'       => 'Yeneshaa Abat must be Yes or No.',
+            'yeneshaa_abat.in' => 'Yeneshaa Abat must be Yes or No.',
         ]);
 
         // agent_id / event_id / ticket_code / sold_at are immutable — admin cannot reassign who sold the ticket.
         $ticket->update([
-            'buyer_name'    => $data['buyer_name'],
-            'buyer_email'   => $data['buyer_email'] ?? null,
-            'buyer_phone'   => $data['buyer_phone'],
-            'buyer_address'   => $data['buyer_address'] ?? null,
+            'buyer_name' => $data['buyer_name'],
+            'buyer_email' => $data['buyer_email'] ?? null,
+            'buyer_phone' => $data['buyer_phone'],
+            'buyer_address' => $data['buyer_address'] ?? null,
             'buyer_occupation' => $data['buyer_occupation'] ?? null,
-            'yeneshaa_abat'  => (bool) (int) $data['yeneshaa_abat'],
-            'price_paid'    => $data['price_paid'],
-            'currency'      => strtoupper($data['currency']),
+            'yeneshaa_abat' => (bool) (int) $data['yeneshaa_abat'],
+            'price_paid' => $data['price_paid'],
+            'currency' => strtoupper($data['currency']),
         ]);
 
         return redirect()->route('admin.ticket-sales.show', $event)->with('status', 'Ticket updated successfully.');
     }
 
-    private function ensureTicketForEvent(Event $event, Ticket $ticket): void
+    private function authorizeTicketInEvent(Event $event, Ticket $ticket): void
     {
         if ((int) $ticket->event_id !== (int) $event->id) {
             abort(404);

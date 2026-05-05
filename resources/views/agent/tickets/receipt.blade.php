@@ -157,19 +157,33 @@
 <body>
 
     {{-- Action buttons --}}
+    @php $isAdminReceiptViewer = (($ticketReceiptViewer ?? null) === 'admin'); @endphp
     <div class="action-bar px-3 no-print">
-        <a href="{{ route('agent.tickets.create') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left mr-1"></i> Sell Another Ticket
-        </a>
-        <button onclick="window.print()" class="btn btn-primary">
+        @if ($isAdminReceiptViewer)
+            <a href="{{ route('admin.ticket-sales.show', $ticket->event) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left mr-1"></i> Back to buyer list
+            </a>
+        @else
+            <a href="{{ route('agent.tickets.create') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left mr-1"></i> Sell Another Ticket
+            </a>
+        @endif
+        <button type="button" onclick="window.print()" class="btn btn-primary">
             <i class="fas fa-print mr-1"></i> Print Receipt
         </button>
-        <button onclick="downloadReceipt()" class="btn btn-success">
-            <i class="fas fa-download mr-1"></i> Save as Image
+        <button type="button" onclick="downloadReceipt(event)" class="btn btn-success">
+            <i class="fas fa-download mr-1"></i> Save as Image (PNG)
         </button>
-        <a href="{{ route('agent.dashboard') }}" class="btn btn-outline-secondary ml-auto">
-            <i class="fas fa-home mr-1"></i> Dashboard
-        </a>
+        @if ($isAdminReceiptViewer)
+            <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary ml-auto">
+                <i class="fas fa-home mr-1"></i> Dashboard
+            </a>
+            <span class="text-muted small ml-2 align-self-center d-none d-md-inline">Tip: Print or PNG works best for WhatsApp.</span>
+        @else
+            <a href="{{ route('agent.dashboard') }}" class="btn btn-outline-secondary ml-auto">
+                <i class="fas fa-home mr-1"></i> Dashboard
+            </a>
+        @endif
     </div>
 
     {{-- Ticket --}}
@@ -329,8 +343,8 @@
         });
 
         // ── Download as PNG image ──
-        function downloadReceipt() {
-            var btn = event.target.closest('button');
+        function downloadReceipt(e) {
+            var btn = e.target.closest('button');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Preparing…';
 

@@ -13,8 +13,8 @@ use App\Http\Controllers\SuperAdmin\CompanyAdminController as SuperAdminCompanyA
 use App\Http\Controllers\SuperAdmin\CompanyController as SuperAdminCompanyController;
 use App\Http\Controllers\SuperAdmin\CrmController as SuperAdminCrmController;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', 'login');
 
@@ -22,6 +22,7 @@ Route::post('/logout', function (Request $request) {
     auth()->logout();
     $request->session()->invalidate();
     $request->session()->regenerateToken();
+
     return redirect('/login');
 })->name('logout')->middleware('auth');
 
@@ -70,16 +71,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('customers/data', [AdminCustomerController::class, 'data'])->name('customers.data');
         Route::get('customers/export', [AdminCustomerController::class, 'export'])->name('customers.export');
 
-        Route::get('checkin',                                           [CheckInController::class, 'index'])->name('checkin.index');
-        Route::get('checkin/{event}',                                   [CheckInController::class, 'show'])->name('checkin.show');
-        Route::post('checkin/{event}/verify',                           [CheckInController::class, 'verify'])->name('checkin.verify');
+        Route::get('checkin', [CheckInController::class, 'index'])->name('checkin.index');
+        Route::get('checkin/{event}', [CheckInController::class, 'show'])->name('checkin.show');
+        Route::post('checkin/{event}/verify', [CheckInController::class, 'verify'])->name('checkin.verify');
 
-        Route::get('ticket-sales',                                      [AdminTicketSalesController::class, 'index'])->name('ticket-sales.index');
-        Route::get('ticket-sales/{event}/export',                       [AdminTicketSalesController::class, 'export'])->name('ticket-sales.export');
-        Route::post('ticket-sales/{event}/export',                      [AdminTicketSalesController::class, 'exportSelected'])->name('ticket-sales.export-selected');
-        Route::get('ticket-sales/{event}/tickets/{ticket}/edit',        [AdminTicketSalesController::class, 'edit'])->name('ticket-sales.tickets.edit');
-        Route::put('ticket-sales/{event}/tickets/{ticket}',             [AdminTicketSalesController::class, 'update'])->name('ticket-sales.tickets.update');
-        Route::get('ticket-sales/{event}',                              [AdminTicketSalesController::class, 'show'])->name('ticket-sales.show');
+        Route::get('ticket-sales', [AdminTicketSalesController::class, 'index'])->name('ticket-sales.index');
+        Route::get('ticket-sales/{event}/export', [AdminTicketSalesController::class, 'export'])->name('ticket-sales.export');
+        Route::post('ticket-sales/{event}/export', [AdminTicketSalesController::class, 'exportSelected'])->name('ticket-sales.export-selected');
+        Route::get('ticket-sales/{event}/tickets/{ticket}/receipt', [AdminTicketSalesController::class, 'receipt'])->name('ticket-sales.tickets.receipt');
+        Route::post('ticket-sales/{event}/tickets/{ticket}/send-receipt', [AdminTicketSalesController::class, 'sendReceiptEmail'])->name('ticket-sales.tickets.send-receipt');
+        Route::get('ticket-sales/{event}/tickets/{ticket}/edit', [AdminTicketSalesController::class, 'edit'])->name('ticket-sales.tickets.edit');
+        Route::put('ticket-sales/{event}/tickets/{ticket}', [AdminTicketSalesController::class, 'update'])->name('ticket-sales.tickets.update');
+        Route::get('ticket-sales/{event}', [AdminTicketSalesController::class, 'show'])->name('ticket-sales.show');
     });
 
     Route::middleware(['role:agent', 'company.active'])->prefix('agent')->name('agent.')->group(function () {
@@ -88,9 +91,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('tickets', AgentTicketController::class)->only(['index', 'create', 'store']);
         Route::get('tickets/{ticket}/receipt', [AgentTicketController::class, 'receipt'])->name('tickets.receipt');
 
-        Route::get('checkin',                [CheckInController::class, 'index'])->name('checkin.index');
-        Route::get('checkin/{event}',        [CheckInController::class, 'show'])->name('checkin.show');
-        Route::post('checkin/{event}/verify',[CheckInController::class, 'verify'])->name('checkin.verify');
+        Route::get('checkin', [CheckInController::class, 'index'])->name('checkin.index');
+        Route::get('checkin/{event}', [CheckInController::class, 'show'])->name('checkin.show');
+        Route::post('checkin/{event}/verify', [CheckInController::class, 'verify'])->name('checkin.verify');
     });
 
     Route::middleware('company.active')->group(function () {

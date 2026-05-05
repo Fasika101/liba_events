@@ -21,6 +21,13 @@
         </div>
     @endif
 
+    @error('send_receipt')
+        <div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <i class="fas fa-exclamation-circle mr-1"></i> {{ $message }}
+        </div>
+    @enderror
+
     {{-- Event summary banner --}}
     <div class="card card-outline card-primary mb-4">
         <div class="card-body p-0">
@@ -211,7 +218,7 @@
                                 <th>Sold By</th>
                                 <th>Date Sold</th>
                                 <th class="text-right">Amount Paid</th>
-                                <th class="text-center" style="width:90px;">Actions</th>
+                                <th class="text-center" style="min-width:132px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -246,10 +253,30 @@
                                         {{ number_format($ticket->price_paid, 2) }} {{ $ticket->currency }}
                                     </td>
                                     <td class="text-center align-middle">
-                                        <a href="{{ route('admin.ticket-sales.tickets.edit', [$event, $ticket]) }}"
-                                           class="btn btn-sm btn-outline-warning" title="Edit this ticket">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
+                                        <div class="d-inline-flex flex-wrap justify-content-center align-items-center" style="gap:4px;">
+                                            <a href="{{ route('admin.ticket-sales.tickets.receipt', [$event, $ticket]) }}"
+                                               target="_blank" rel="noopener"
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Open ticket — print or save as PNG">
+                                                <i class="fas fa-ticket-alt"></i>
+                                            </a>
+                                            <form method="POST"
+                                                  action="{{ route('admin.ticket-sales.tickets.send-receipt', [$event, $ticket]) }}"
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('Send the ticket receipt email to this buyer?');">
+                                                @csrf
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-outline-info"
+                                                        @disabled(! $ticket->buyer_email)
+                                                        title="{{ $ticket->buyer_email ? 'Email receipt to buyer' : 'Add buyer email (Edit ticket)' }}">
+                                                    <i class="fas fa-envelope"></i>
+                                                </button>
+                                            </form>
+                                            <a href="{{ route('admin.ticket-sales.tickets.edit', [$event, $ticket]) }}"
+                                               class="btn btn-sm btn-outline-warning" title="Edit this ticket">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
