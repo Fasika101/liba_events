@@ -216,7 +216,7 @@
                 {{-- Event info --}}
                 <div class="row mb-3">
                     <div class="col-sm-6 mb-3">
-                        <div class="info-label"><i class="fas fa-calendar mr-1"></i> Event Date</div>
+                        <div class="info-label"><i class="fas fa-calendar mr-1"></i> Date on ticket</div>
                         <div class="info-value">
                             @if ($ticket->event)
                                 @php
@@ -229,7 +229,7 @@
                                     </strong>
                                     @if ($ev->end_at && $ev->start_at && $ev->end_at->ne($ev->start_at))
                                         <span class="text-muted small d-block mt-1">
-                                            Starts: {{ \App\Helpers\EthiopianCalendar::format($ev->start_at) }}
+                                            Ticket sales from {{ \App\Helpers\EthiopianCalendar::format($ev->start_at) }}
                                         </span>
                                     @endif
                                 @else

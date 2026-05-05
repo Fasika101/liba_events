@@ -403,7 +403,7 @@
             document.getElementById('previewDate').textContent = d.date || '—';
             var ps = document.getElementById('previewStartsRow');
             if (d.date_starts) {
-                ps.textContent = 'Starts: ' + d.date_starts;
+                ps.textContent = 'Ticket sales from ' + d.date_starts;
                 ps.style.display = '';
             } else {
                 ps.textContent = '';
@@ -487,7 +487,7 @@
             document.getElementById('cm-date').textContent = d.date || '—';
             var cmStarts = document.getElementById('cm-starts-row');
             if (d.date_starts) {
-                cmStarts.textContent = 'Starts: ' + d.date_starts;
+                cmStarts.textContent = 'Ticket sales from ' + d.date_starts;
                 cmStarts.style.display = '';
             } else {
                 cmStarts.textContent = '';

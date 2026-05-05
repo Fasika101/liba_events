@@ -101,17 +101,22 @@ class EventController extends Controller
 
     protected function validatedData(Request $request, ?int $eventId = null): array
     {
-        $data = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'price' => ['required', 'numeric', 'min:0'],
-            'currency' => ['required', 'string', 'size:3'],
-            'start_at' => ['required', 'date'],
-            'end_at' => ['required', 'date', 'after_or_equal:start_at'],
-            'capacity' => ['nullable', 'integer', 'min:1'],
-            'status' => ['required', 'string', 'in:active,draft,archived'],
-            'photo' => ['nullable', 'image', 'max:2048'],
-        ]);
+        $data = $request->validate(
+            [
+                'title' => ['required', 'string', 'max:255'],
+                'description' => ['nullable', 'string'],
+                'price' => ['required', 'numeric', 'min:0'],
+                'currency' => ['required', 'string', 'size:3'],
+                'start_at' => ['required', 'date'],
+                'end_at' => ['required', 'date', 'after_or_equal:start_at'],
+                'capacity' => ['nullable', 'integer', 'min:1'],
+                'status' => ['required', 'string', 'in:active,draft,archived'],
+                'photo' => ['nullable', 'image', 'max:2048'],
+            ],
+            [
+                'end_at.after_or_equal' => 'The last day ticket sales must be on or after the first day ticket sales open.',
+            ]
+        );
 
         $data['currency'] = Str::upper($data['currency']);
 
