@@ -51,6 +51,43 @@
         </div>
     </div>
 
+    <div class="row mb-3">
+        <div class="col-md-4 col-sm-6">
+            <div class="small-box bg-teal">
+                <div class="inner">
+                    <h3>{{ number_format($smsSummary['sms_sent_count']) }}</h3>
+                    <p>SMS sent (all orgs)</p>
+                </div>
+                <div class="icon"><i class="fas fa-sms"></i></div>
+                <a href="{{ route('super-admin.accounting.index') }}" class="small-box-footer">
+                    Accounting <i class="fas fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+        <div class="col-md-4 col-sm-6">
+            <div class="small-box bg-olive">
+                <div class="inner">
+                    <h3>{{ number_format($smsSummary['total_revenue_etb'], 0) }}</h3>
+                    <p>SMS revenue (ETB)</p>
+                </div>
+                <div class="icon"><i class="fas fa-coins"></i></div>
+                <a href="{{ route('super-admin.accounting.index') }}" class="small-box-footer">
+                    View breakdown <i class="fas fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+        <div class="col-md-4 col-sm-6">
+            <div class="small-box bg-maroon">
+                <div class="inner">
+                    <h3>{{ number_format($smsSummary['sender_id_count']) }}</h3>
+                    <p>Sender IDs sold</p>
+                </div>
+                <div class="icon"><i class="fas fa-id-badge"></i></div>
+                <span class="small-box-footer">{{ number_format($smsSummary['sender_id_revenue_etb'], 0) }} ETB from sender IDs</span>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-12">
             <div class="card card-outline card-primary">

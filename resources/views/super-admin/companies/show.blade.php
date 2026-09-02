@@ -178,6 +178,92 @@
         </div>
     </div>
 
+    <div class="card org-card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-crown text-warning mr-2"></i>Premium & SMS wallet</span>
+            <span class="badge badge-{{ $company->isPremium() ? 'warning' : 'secondary' }} text-capitalize">{{ $company->plan }}</span>
+        </div>
+        <div class="card-body">
+            @if ($company->isPremium())
+                <p class="mb-2">
+                    <strong>{{ number_format($company->sms_credits) }}</strong> SMS credits ·
+                    <strong>{{ number_format($company->wallet_balance_etb, 2) }}</strong> ETB wallet balance
+                </p>
+                @isset($smsStats)
+                    <p class="small mb-2">
+                        <strong>{{ number_format($smsStats['sms_sent']) }}</strong> SMS sent ·
+                        <strong>{{ number_format($smsStats['package_revenue_etb'], 2) }}</strong> ETB from packages ·
+                        <strong>{{ number_format($smsStats['sender_id_revenue_etb'], 2) }}</strong> ETB from sender ID
+                    </p>
+                @endisset
+                <form method="POST" action="{{ route('super-admin.companies.premium.downgrade', $company) }}" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-outline-secondary" onclick="return confirm('Move to Standard plan?');">Downgrade to Standard</button>
+                </form>
+            @else
+                <p class="text-muted mb-2">This organization is on the Standard plan.</p>
+                <form method="POST" action="{{ route('super-admin.companies.premium.upgrade', $company) }}" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-warning"><i class="fas fa-crown mr-1"></i> Upgrade to Premium</button>
+                </form>
+            @endif
+
+            @if ($company->isPremium() && isset($smsPackages))
+                <hr>
+                <form method="POST" action="{{ route('super-admin.companies.premium.top-up', $company) }}" class="form-inline flex-wrap">
+                    @csrf
+                    <label class="mr-2 mb-2">Add SMS package:</label>
+                    <select name="sms_package_id" class="form-control form-control-sm mr-2 mb-2" required>
+                        @foreach ($smsPackages as $pkg)
+                            <option value="{{ $pkg->id }}">{{ $pkg->name }} — {{ number_format($pkg->price_etb, 2) }} ETB</option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-success mb-2">Credit wallet</button>
+                </form>
+            @endif
+
+            @if ($company->isPremium())
+                <hr>
+                <h6 class="font-weight-bold mb-2">Organization SMS credentials</h6>
+                <p class="small text-muted mb-2">
+                    Attach an SMSEthiopia API key so this organization can send customer SMS.
+                    Without a custom sender ID they use the platform default sender.
+                    @if ($company->hasSmsApiKey())
+                        <span class="badge badge-success ml-1">API key attached</span>
+                    @else
+                        <span class="badge badge-secondary ml-1">No API key</span>
+                    @endif
+                    @if ($company->sms_sender_id)
+                        · Sender ID: <strong>{{ $company->sms_sender_id }}</strong>
+                    @endif
+                </p>
+                <form method="POST" action="{{ route('super-admin.companies.sms-credentials.update', $company) }}">
+                    @csrf @method('PUT')
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label class="small mb-1">API key</label>
+                            <input type="password" name="sms_api_key" class="form-control form-control-sm"
+                                   placeholder="{{ $company->hasSmsApiKey() ? 'Leave blank to keep current key' : 'Paste organization API key' }}"
+                                   autocomplete="off">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="small mb-1">Custom sender ID (11 chars)</label>
+                            <input type="text" name="sms_sender_id" class="form-control form-control-sm" maxlength="11"
+                                   value="{{ $company->sms_sender_id }}" placeholder="Optional">
+                        </div>
+                        <div class="form-group col-md-2 d-flex align-items-end">
+                            <div class="custom-control custom-checkbox mb-2">
+                                <input type="checkbox" class="custom-control-input" id="clear_api_key" name="clear_api_key" value="1">
+                                <label class="custom-control-label small" for="clear_api_key">Remove key</label>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary">Save SMS credentials</button>
+                </form>
+            @endif
+        </div>
+    </div>
+
     <div class="row mb-3">
         <div class="col-sm-6 col-lg-3 mb-3 mb-lg-0">
             <div class="org-kpi">
@@ -236,6 +322,7 @@
                                     <th>Name</th>
                                     <th>Email</th>
                                     <th>Account</th>
+                                    <th class="text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -250,10 +337,22 @@
                                                 <span class="badge badge-success">Active</span>
                                             @endif
                                         </td>
+                                        <td class="text-right">
+                                            <form method="POST" action="{{ route('super-admin.users.destroy', $admin) }}"
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('Delete admin {{ $admin->name }}? This cannot be undone.');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <input type="hidden" name="redirect_company" value="1">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete admin">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="3" class="text-center text-muted py-4">No admins yet.</td>
+                                        <td colspan="4" class="text-center text-muted py-4">No admins yet.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -280,6 +379,7 @@
                                     <th class="text-right">Tickets</th>
                                     <th class="text-right">Revenue</th>
                                     <th>Status</th>
+                                    <th class="text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -300,10 +400,25 @@
                                                 <span class="badge badge-success">Active</span>
                                             @endif
                                         </td>
+                                        <td class="text-right">
+                                            <form method="POST" action="{{ route('super-admin.users.destroy', $agent) }}"
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('Delete agent {{ $agent->name }}?{{ $agent->tickets_count > 0 ? ' This agent has ticket sales and cannot be deleted.' : ' This cannot be undone.' }}');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <input type="hidden" name="redirect_company" value="1">
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        title="{{ $agent->tickets_count > 0 ? 'Cannot delete — has ticket sales' : 'Delete agent' }}"
+                                                        @if($agent->tickets_count > 0) disabled @endif>
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center text-muted py-5">
+                                        <td colspan="5" class="text-center text-muted py-5">
                                             No agents yet. Company admins can add agents from their dashboard.
                                         </td>
                                     </tr>

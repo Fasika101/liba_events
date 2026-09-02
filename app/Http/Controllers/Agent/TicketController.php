@@ -6,6 +6,7 @@ use App\Helpers\EthiopianCalendar;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Ticket;
+use App\Services\CustomerTicketSmsService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -131,7 +132,7 @@ class TicketController extends Controller
         return view('agent.tickets.create', compact('events'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, CustomerTicketSmsService $customerSms)
     {
         $companyId = auth()->user()->requireCompanyId();
 
@@ -177,6 +178,12 @@ class TicketController extends Controller
                 'sold_at'          => now(),
             ]);
         });
+
+        try {
+            $customerSms->sendForTicketSale($ticket);
+        } catch (\Throwable) {
+            // Ticket sale succeeds even if customer SMS fails (e.g. no credits).
+        }
 
         return redirect()->route('agent.tickets.receipt', $ticket);
     }

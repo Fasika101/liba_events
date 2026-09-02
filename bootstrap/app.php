@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role'                 => \App\Http\Middleware\RoleMiddleware::class,
             'registration.enabled' => \App\Http\Middleware\EnsurePublicRegistrationEnabled::class,
+            'organization.registration.enabled' => \App\Http\Middleware\EnsureOrganizationRegistrationEnabled::class,
             'company.active'       => \App\Http\Middleware\EnsureCompanyNotSuspended::class,
         ]);
     })

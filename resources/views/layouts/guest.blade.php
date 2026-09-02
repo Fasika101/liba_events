@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    @include('partials.mobile-head')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'Liba Events') }} — Sign In</title>
 
@@ -125,7 +125,7 @@
         padding: 10px 14px;
         transition: border-color .18s, box-shadow .18s;
     }
-    @media (min-width: 768px) {
+    @media (min-width: 992px) {
         .form-control { font-size: .88rem; }
     }
     .form-control::placeholder { color: rgba(255,255,255,.3); }
@@ -195,8 +195,9 @@
         font-size: .74rem;
     }
     </style>
+    @include('partials.mobile-styles')
 </head>
-<body>
+<body class="guest-auth">
     <div class="login-card">
         <div class="login-logo">
             @if(file_exists(public_path('images/logo.png')) || file_exists(public_path('images/logo.svg')) || file_exists(public_path('images/logo.jpg')))

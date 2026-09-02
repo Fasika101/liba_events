@@ -1,0 +1,308 @@
+/* Liba Events — mobile app-like experience (no zoom, fit viewport) */
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    touch-action: manipulation;
+}
+
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* Prevent iOS focus zoom on form fields (must beat layout/page CSS) */
+@media (max-width: 991.98px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]),
+    select,
+    textarea,
+    .form-control,
+    .custom-select,
+    .input-group-text,
+    .select2-container .select2-selection--single,
+    .select2-container .select2-search__field,
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+        font-size: 16px !important;
+    }
+}
+
+/* Guest login / register — mobile only (desktop keeps layout inline styles) */
+@media (max-width: 767.98px) {
+    body.guest-auth,
+    body.guest-wide {
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+        padding-bottom: max(24px, env(safe-area-inset-bottom));
+    }
+
+    body.guest-auth {
+        overflow-x: hidden;
+        overflow-y: auto;
+        align-items: flex-start;
+        padding-top: max(20px, env(safe-area-inset-top));
+    }
+
+    body.guest-wide {
+        padding-top: max(24px, env(safe-area-inset-top));
+    }
+
+    body.guest-auth .login-card,
+    body.guest-wide .login-card {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* ── AdminLTE app shell (phones & tablets) ───────────────── */
+@media (max-width: 991.98px) {
+    body.layout-app {
+        overflow-x: hidden;
+    }
+
+    body.layout-app.sidebar-open {
+        overflow: hidden;
+    }
+
+    .main-header {
+        position: sticky;
+        top: 0;
+        z-index: 1030;
+        padding-left: max(0px, env(safe-area-inset-left));
+        padding-right: max(0px, env(safe-area-inset-right));
+    }
+
+    .main-header .nav-link[data-widget="pushmenu"] {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .content-wrapper {
+        margin-left: 0 !important;
+        padding-top: 0;
+    }
+
+    .layout-fixed .wrapper .sidebar {
+        height: calc(100vh - calc(3.5rem + 1px));
+        height: calc(100dvh - calc(3.5rem + 1px));
+    }
+
+    .content-header {
+        padding: 12px 12px 0 !important;
+    }
+
+    .content-header .container-fluid {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .content-header h1,
+    .content-header .m-0 {
+        font-size: 1.2rem !important;
+        line-height: 1.3;
+    }
+
+    .content {
+        padding-left: max(10px, env(safe-area-inset-left));
+        padding-right: max(10px, env(safe-area-inset-right));
+    }
+
+    .content .container-fluid {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .card {
+        margin-bottom: 12px !important;
+        border-radius: 12px !important;
+    }
+
+    .card-header {
+        padding: 12px 14px !important;
+    }
+
+    .card-body {
+        padding: 14px !important;
+    }
+
+    .card-footer {
+        padding: 12px 14px !important;
+    }
+
+    .card-footer .btn,
+    .card-body .btn:not(.btn-xs):not(.btn-sm),
+    .content .btn-primary:not(.btn-sm):not(.btn-xs),
+    .content .btn-success:not(.btn-sm):not(.btn-xs),
+    .content .btn-info:not(.btn-sm):not(.btn-xs) {
+        min-height: 44px;
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+    }
+
+    .btn-sm,
+    .btn-group-sm > .btn {
+        min-height: 38px;
+        padding: 6px 12px !important;
+    }
+
+    .nav-sidebar .nav-link {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    .small-box .inner h3 {
+        font-size: 1.65rem !important;
+    }
+
+    .small-box .icon > i {
+        font-size: 3rem !important;
+    }
+
+    .info-box {
+        min-height: auto;
+        margin-bottom: 10px;
+    }
+
+    .row.mb-2 > [class*="col-"] {
+        margin-bottom: 4px;
+    }
+
+    .breadcrumb {
+        font-size: 0.75rem;
+        padding: 0;
+        margin-bottom: 0;
+        flex-wrap: wrap;
+        background: transparent;
+    }
+
+    .breadcrumb.float-sm-right {
+        float: none !important;
+        margin-top: 4px;
+    }
+
+    .table-responsive {
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: 0;
+    }
+
+    .dataTables_wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+        font-size: 16px !important;
+        min-height: 40px;
+    }
+
+    .modal-dialog {
+        margin: 0.75rem;
+        max-width: calc(100% - 1.5rem);
+    }
+
+    .dropdown-menu {
+        max-width: calc(100vw - 24px);
+    }
+
+    .main-footer {
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+    }
+
+    .form-row > [class*="col-"] {
+        margin-bottom: 8px;
+    }
+
+    .input-group .form-control {
+        min-height: 44px;
+    }
+
+    .custom-control-label {
+        padding-top: 2px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    .crm-picker-toggle {
+        min-height: 44px;
+    }
+
+    .alert {
+        font-size: 0.9rem;
+    }
+
+    /* Stack action button groups */
+    .card-tools .btn,
+    .card-header .btn {
+        margin-bottom: 4px;
+    }
+
+    .form-inline {
+        display: block !important;
+    }
+
+    .form-inline .input-group,
+    .form-inline .mb-2,
+    .form-inline .mr-2,
+    .form-inline .ml-auto {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    .form-inline select.form-control,
+    .form-inline .input-group .form-control {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .form-inline .ml-auto .btn,
+    .form-inline .ml-auto a.btn {
+        width: 100%;
+        display: block;
+        text-align: center;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .content-header h1,
+    .content-header .m-0 {
+        font-size: 1.1rem !important;
+    }
+
+    .d-none.d-sm-inline,
+    .d-none.d-md-inline {
+        display: none !important;
+    }
+
+    .col-lg-7,
+    .col-lg-6,
+    .col-lg-5,
+    .col-lg-4,
+    .col-lg-8 {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .table td,
+    .table th {
+        font-size: 0.82rem;
+        padding: 0.45rem !important;
+    }
+
+    .pagination .page-link {
+        min-width: 40px;
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

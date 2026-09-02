@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    @include('partials.mobile-head')
     <title>Ticket Receipt — {{ $ticket->ticket_code }}</title>
 
     <!-- Font Awesome -->
@@ -153,6 +153,7 @@
             .ticket-code { font-size: 1.4rem; }
         }
     </style>
+    @include('partials.mobile-styles')
 </head>
 <body>
 

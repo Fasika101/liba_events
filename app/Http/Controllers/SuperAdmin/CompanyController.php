@@ -5,8 +5,10 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Event;
+use App\Models\SmsPackage;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Services\SmsAccountingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -97,6 +99,10 @@ class CompanyController extends Controller
             ->take(6)
             ->get();
 
+        $smsPackages = SmsPackage::query()->where('is_active', true)->orderBy('sort_order')->get();
+
+        $smsStats = app(SmsAccountingService::class)->companySummary($company);
+
         return view('super-admin.companies.show', compact(
             'company',
             'eventsCount',
@@ -105,7 +111,9 @@ class CompanyController extends Controller
             'agents',
             'admins',
             'adminsCount',
-            'recentEvents'
+            'recentEvents',
+            'smsPackages',
+            'smsStats'
         ));
     }
 

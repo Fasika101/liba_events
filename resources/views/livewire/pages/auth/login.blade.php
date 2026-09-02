@@ -88,4 +88,16 @@ new #[Layout('layouts.guest')] class extends Component
             </span>
         </button>
     </form>
+
+    @if (config('events.allow_organization_registration'))
+        <div class="text-center mt-4 pt-3" style="border-top:1px solid rgba(255,255,255,.1);">
+            <p style="color:rgba(255,255,255,.55);font-size:.82rem;margin-bottom:10px;">
+                New organization?
+            </p>
+            <a href="{{ route('register-organization') }}"
+               style="color:#93c5fd;font-size:.85rem;font-weight:600;text-decoration:none;">
+                <i class="fas fa-building mr-1"></i> Register and wait for approval
+            </a>
+        </div>
+    @endif
 </div>

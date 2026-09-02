@@ -38,7 +38,7 @@
                         <th>Organization</th>
                         <th>Org status</th>
                         <th>Account</th>
-                        <th class="text-right">Open</th>
+                        <th class="text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -69,13 +69,22 @@
                                     <span class="badge badge-light border">OK</span>
                                 @endif
                             </td>
-                            <td class="text-right">
+                            <td class="text-right text-nowrap">
                                 @if ($admin->company)
                                     <a href="{{ route('super-admin.companies.show', $admin->company) }}"
-                                       class="btn btn-sm btn-outline-primary">
+                                       class="btn btn-sm btn-outline-primary mr-1">
                                         Dashboard
                                     </a>
                                 @endif
+                                <form method="POST" action="{{ route('super-admin.users.destroy', $admin) }}"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Delete admin account for ' + @json($admin->name) + '? This cannot be undone.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete user">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     @empty

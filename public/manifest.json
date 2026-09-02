@@ -1,0 +1,12 @@
+{
+    "name": "Liba Events",
+    "short_name": "Events",
+    "description": "Ticket sales and event management",
+    "start_url": "/login",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#0d1b2a",
+    "theme_color": "#0d1b2a",
+    "lang": "en"
+}

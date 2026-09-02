@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    @include('partials.mobile-head')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'Liba Events') }}</title>
 
@@ -354,12 +354,17 @@
         border-radius: 8px !important;
         border: 1.5px solid var(--border) !important;
         font-family: 'Inter', sans-serif;
-        font-size: .85rem;
         color: var(--text);
         padding: 8px 14px;
         transition: border-color var(--transition), box-shadow var(--transition);
         background: #fff;
     }
+    @media (min-width: 992px) {
+        .form-control {
+            font-size: .85rem;
+        }
+    }
+
     .form-control:focus {
         border-color: var(--accent) !important;
         box-shadow: 0 0 0 3px rgba(79,110,247,.18) !important;
@@ -373,7 +378,11 @@
         border-radius: 8px !important;
         background: #f8faff;
         color: var(--muted);
-        font-size: .85rem;
+    }
+    @media (min-width: 992px) {
+        .input-group-text {
+            font-size: .85rem;
+        }
     }
     .input-group > .form-control:not(:first-child),
     .input-group > .input-group-append > .input-group-text {
@@ -526,8 +535,9 @@
     </style>
 
     @stack('styles')
+    @include('partials.mobile-styles')
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
+<body class="hold-transition sidebar-mini layout-fixed layout-app">
 <div class="wrapper">
 
     {{-- Top Navbar --}}
@@ -647,11 +657,17 @@
                             ['super-admin.companies.create', 'fa-plus-circle',    'New company'],
                             ['super-admin.company-admins.index', 'fa-users-cog', 'Company admins'],
                             ['super-admin.company-admins.create', 'fa-user-shield', 'Add company admin'],
+                            ['super-admin.registration-requests.index', 'fa-user-clock', 'Registrations'],
+                            ['super-admin.sms-settings.edit', 'fa-sms', 'SMS settings'],
+                            ['super-admin.bulk-sms.index', 'fa-bullhorn', 'Bulk SMS'],
+                            ['super-admin.sms-packages.index', 'fa-box', 'SMS packages'],
+                            ['super-admin.premium.purchase-requests', 'fa-crown', 'Premium requests'],
+                            ['super-admin.accounting.index', 'fa-calculator', 'SMS Accounting'],
                             ['super-admin.crm.index',        'fa-address-book',   'CRM'],
                         ] as [$route, $icon, $label])
                             <li class="nav-item">
                                 <a href="{{ route($route) }}"
-                                   class="nav-link {{ request()->routeIs($route) || ($route === 'super-admin.companies.index' && request()->routeIs('super-admin.companies.*')) || ($route === 'super-admin.crm.index' && request()->routeIs('super-admin.crm.*')) ? 'active' : '' }}">
+                                   class="nav-link {{ request()->routeIs($route) || ($route === 'super-admin.companies.index' && request()->routeIs('super-admin.companies.*')) || ($route === 'super-admin.registration-requests.index' && request()->routeIs('super-admin.registration-requests.*')) || ($route === 'super-admin.sms-settings.edit' && request()->routeIs('super-admin.sms-settings.*')) || ($route === 'super-admin.bulk-sms.index' && request()->routeIs('super-admin.bulk-sms.*')) || ($route === 'super-admin.sms-packages.index' && request()->routeIs('super-admin.sms-packages.*')) || ($route === 'super-admin.premium.purchase-requests' && request()->routeIs('super-admin.premium.*')) || ($route === 'super-admin.accounting.index' && request()->routeIs('super-admin.accounting.*')) || ($route === 'super-admin.crm.index' && request()->routeIs('super-admin.crm.*')) ? 'active' : '' }}">
                                     <i class="nav-icon fas {{ $icon }}"></i>
                                     <p>{{ $label }}</p>
                                 </a>
@@ -668,6 +684,8 @@
                             ['admin.ticket-sales.index','fa-chart-bar',      'Ticket Sales'],
                             ['admin.customers.index',   'fa-address-book',   'Customers'],
                             ['admin.checkin.index',     'fa-qrcode',         'Check-In'],
+                            ['admin.premium.index',     'fa-crown',          'Premium Features'],
+                            ['admin.bulk-sms.index',    'fa-sms',            'Bulk SMS'],
                         ] as [$route, $icon, $label])
                             <li class="nav-item">
                                 <a href="{{ route($route) }}"
@@ -744,6 +762,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+<script src="{{ asset('js/mobile-app.js') }}?v=1"></script>
 
 @stack('scripts')
 </body>
