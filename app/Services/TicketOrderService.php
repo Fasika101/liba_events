@@ -8,6 +8,7 @@ use App\Models\Ticket;
 use App\Models\TicketOrder;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class TicketOrderService
@@ -31,6 +32,10 @@ class TicketOrderService
 
         if ($event->is_full) {
             throw new RuntimeException('This event is at full capacity.');
+        }
+
+        if ($event->isExpired()) {
+            throw new RuntimeException('This event has ended. Registration is closed.');
         }
 
         if ($company->bankAccounts()->where('is_active', true)->count() < 1) {
@@ -58,30 +63,78 @@ class TicketOrderService
             'transaction_reference' => $buyer['transaction_reference'] ?? null,
         ]);
 
-        if (filled($order->transaction_reference) && filled($order->bank_code) && $this->verifyEt->isConfigured()) {
+        if (filled($order->transaction_reference) && $this->verifyEt->isConfigured()) {
             try {
-                $settlement = $company->bankAccounts()
-                    ->where('is_active', true)
-                    ->when($order->bank_code, fn ($q) => $q->where('bank_code', $order->bank_code))
-                    ->value('account_number');
-
-                $result = $this->verifyEt->verify(
-                    (string) $order->bank_code,
-                    (string) $order->transaction_reference,
-                    $settlement ? (string) $settlement : null
-                );
-
-                $order->update([
-                    'verify_et_request_id' => $result['request_id'],
-                    'verify_et_status' => $result['status'],
-                    'verify_et_payload' => json_encode($result['raw']),
-                ]);
-            } catch (\Throwable) {
-                // Org can still verify manually.
+                $this->submitVerifyEt($order);
+            } catch (\Throwable $e) {
+                Log::warning('Verify.et submit failed', ['order' => $order->id, 'error' => $e->getMessage()]);
             }
         }
 
-        return $order->fresh(['event', 'company']);
+        return $order->fresh(['event', 'company', 'ticket']);
+    }
+
+    public function submitVerifyEt(TicketOrder $order): TicketOrder
+    {
+        $order->loadMissing('company.bankAccounts', 'event');
+
+        $bank = strtolower((string) ($order->bank_code ?: 'cbe'));
+        // If bank_code was a display name, keep as-is lowercase token.
+        if (! in_array($bank, ['cbe', 'telebirr', 'cbebirr', 'boa', 'mpesa', 'dashen', 'awash', 'siinqee', 'kaafiebirr', 'coopayebirr'], true)) {
+            $mapped = $order->company?->bankAccounts
+                ?->firstWhere('bank_code', $order->bank_code)
+                ?? $order->company?->bankAccounts?->firstWhere('bank_name', $order->bank_code);
+            $bank = strtolower((string) ($mapped?->bank_code ?: 'cbe'));
+        }
+
+        $account = $order->company->bankAccounts
+            ->where('is_active', true)
+            ->when($order->bank_code, function ($c) use ($order) {
+                return $c->filter(fn ($a) => $a->bank_code === $order->bank_code || $a->bank_name === $order->bank_code);
+            })
+            ->first()
+            ?? $order->company->bankAccounts->where('is_active', true)->first();
+
+        $result = $this->verifyEt->verify(
+            $bank,
+            (string) $order->transaction_reference,
+            $account?->account_number,
+            (float) $order->amount,
+            $order->buyer_phone,
+            'ticket-order-'.$order->id
+        );
+
+        $statusNote = $this->buildVerifyNote($result, (float) $order->amount);
+
+        $order->update([
+            'verify_et_request_id' => $result['request_id'],
+            'verify_et_status' => $statusNote,
+            'verify_et_payload' => json_encode($result['raw']),
+        ]);
+
+        if ($this->shouldAutoMarkPaid($result)) {
+            return $this->markPaid($order->fresh(), null, 'Auto-verified via Verify.et (amount matched)');
+        }
+
+        return $order->fresh(['event', 'company', 'ticket']);
+    }
+
+    public function applyVerifyEtResult(TicketOrder $order, array $payload): TicketOrder
+    {
+        $result = $this->verifyEt->interpretResult($payload, (float) $order->amount);
+        $statusNote = $this->buildVerifyNote($result, (float) $order->amount);
+
+        $order->update([
+            'verify_et_request_id' => $result['request_id'] ?: $order->verify_et_request_id,
+            'verify_et_status' => $statusNote,
+            'verify_et_payload' => json_encode($payload),
+        ]);
+
+        if ($order->isPending() && $this->shouldAutoMarkPaid($result)) {
+            return $this->markPaid($order->fresh(), null, 'Auto-verified via Verify.et webhook (amount matched)');
+        }
+
+        return $order->fresh(['ticket', 'event']);
     }
 
     public function markPaid(TicketOrder $order, ?User $reviewer = null, ?string $note = null): TicketOrder
@@ -161,5 +214,49 @@ class TicketOrderService
         ]);
 
         return $order->fresh();
+    }
+
+    private function shouldAutoMarkPaid(array $result): bool
+    {
+        if (! ($result['verified'] ?? false)) {
+            return false;
+        }
+
+        // Require exact amount match when Verify.et returned an amount.
+        if (($result['amount_matched'] ?? null) !== true) {
+            return false;
+        }
+
+        // If settlement matching was evaluated and failed, do not auto-pay.
+        if (($result['settlement_matched'] ?? null) === false) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function buildVerifyNote(array $result, float $expectedAmount): string
+    {
+        $parts = [
+            $result['status'] ?: 'pending',
+        ];
+
+        if ($result['amount'] !== null) {
+            $parts[] = 'receipt='.$result['amount'].($result['currency'] ? ' '.$result['currency'] : '');
+            $parts[] = 'expected='.$expectedAmount;
+            $parts[] = ($result['amount_matched'] === true)
+                ? 'amount_ok'
+                : (($result['amount_matched'] === false) ? 'amount_mismatch' : 'amount_pending');
+        } else {
+            $parts[] = 'amount_pending';
+        }
+
+        if ($result['settlement_matched'] === true) {
+            $parts[] = 'settlement_ok';
+        } elseif ($result['settlement_matched'] === false) {
+            $parts[] = 'settlement_mismatch';
+        }
+
+        return implode(' | ', $parts);
     }
 }

@@ -8,6 +8,13 @@
     @php
         $photo = $event->photo_path ? asset('storage/'.$event->photo_path) : null;
         $accounts = $event->company->bankAccounts;
+        $oldPhone = (string) old('buyer_phone', old('buyer_phone_local', ''));
+        $phoneLocal = preg_replace('/\D+/', '', $oldPhone);
+        if (str_starts_with($phoneLocal, '251') && strlen($phoneLocal) >= 12) {
+            $phoneLocal = substr($phoneLocal, -9);
+        } elseif (strlen($phoneLocal) > 9) {
+            $phoneLocal = substr($phoneLocal, -9);
+        }
     @endphp
 
     <article class="mp-card mp-event-hero {{ $event->isExpired() ? 'is-expired' : '' }}">
@@ -99,7 +106,8 @@
                 <p class="mp-lux-eyebrow">02 — Register</p>
                 <h2 class="mp-display mp-display-sm">{{ __('public.your_details') }}</h2>
 
-                <form method="POST" action="{{ route('public.events.checkout', $event) }}" class="mp-form mp-form-lux">
+                <form method="POST" action="{{ route('public.events.checkout', $event) }}" class="mp-form mp-form-lux" id="checkout-form"
+                      data-verify-url="{{ route('public.events.verify-payment', $event) }}">
                     @csrf
                     <div class="mp-form-grid">
                         <div class="field field-span">
@@ -108,8 +116,20 @@
                             @error('buyer_name') <div class="mp-error">{{ $message }}</div> @enderror
                         </div>
                         <div class="field">
-                            <label for="buyer_phone">{{ __('public.phone') }}</label>
-                            <input id="buyer_phone" name="buyer_phone" value="{{ old('buyer_phone', '+251') }}" required inputmode="tel" autocomplete="tel">
+                            <label for="buyer_phone_local">{{ __('public.phone') }}</label>
+                            <div class="mp-phone">
+                                <span class="mp-phone-code">+251</span>
+                                <input id="buyer_phone_local"
+                                       name="buyer_phone_local"
+                                       value="{{ $phoneLocal }}"
+                                       required
+                                       inputmode="numeric"
+                                       autocomplete="tel-national"
+                                       maxlength="9"
+                                       pattern="[0-9]{9}"
+                                       placeholder="9XXXXXXXX">
+                            </div>
+                            <p class="mp-lux-hint" style="margin-top:6px;">{{ __('public.phone_hint') }}</p>
                             @error('buyer_phone') <div class="mp-error">{{ $message }}</div> @enderror
                         </div>
                         <div class="field">
@@ -144,13 +164,115 @@
                         </div>
                         <div class="field field-span">
                             <label for="transaction_reference">{{ __('public.transaction_id') }}</label>
-                            <input id="transaction_reference" name="transaction_reference" value="{{ old('transaction_reference') }}" required>
+                            <textarea id="transaction_reference" name="transaction_reference" rows="3" required
+                                      placeholder="Paste receipt ID, transaction number, or the full bank SMS">{{ old('transaction_reference') }}</textarea>
+                            <div id="verify-status" class="mp-verify-status" aria-live="polite"></div>
+                            <p class="mp-lux-hint" style="margin-top:6px;">
+                                We check the receipt amount against {{ number_format((float) $event->price, 2) }} {{ $event->currency }} as you type.
+                            </p>
                             @error('transaction_reference') <div class="mp-error">{{ $message }}</div> @enderror
                         </div>
                     </div>
-                    <button class="mp-btn mp-btn-block mp-btn-lux" type="submit">{{ __('public.submit_order') }}</button>
+                    <button class="mp-btn mp-btn-block mp-btn-lux" type="submit" id="checkout-submit">{{ __('public.submit_order') }}</button>
                 </form>
             </div>
         </section>
     @endif
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    var phone = document.getElementById('buyer_phone_local');
+    if (phone) {
+        phone.addEventListener('input', function () {
+            var digits = phone.value.replace(/\D+/g, '').slice(0, 9);
+            if (digits.charAt(0) === '0') {
+                digits = digits.slice(1).slice(0, 9);
+            }
+            phone.value = digits;
+        });
+    }
+
+    var form = document.getElementById('checkout-form');
+    if (!form) return;
+
+    var refInput = document.getElementById('transaction_reference');
+    var bankInput = document.getElementById('bank_code');
+    var statusEl = document.getElementById('verify-status');
+    var verifyUrl = form.getAttribute('data-verify-url');
+    var token = document.querySelector('meta[name="csrf-token"]');
+    var timer = null;
+    var lastKey = '';
+
+    var i18n = {
+        checking: @json(__('public.verify_checking')),
+        needed: @json(__('public.verify_needed'))
+    };
+
+    function setStatus(state, message) {
+        if (!statusEl) return;
+        statusEl.className = 'mp-verify-status is-' + state;
+        var icon = state === 'verified' ? '✓'
+            : state === 'checking' ? '…'
+            : state === 'pending' || state === 'manual' ? '•'
+            : '!';
+        statusEl.innerHTML = '<span class="mp-verify-icon">' + icon + '</span><span>' + message + '</span>';
+    }
+
+    function runVerify() {
+        var reference = (refInput.value || '').trim();
+        if (reference.length < 4) {
+            setStatus('idle', i18n.needed);
+            return;
+        }
+
+        var key = (bankInput.value || '') + '|' + reference;
+        if (key === lastKey && statusEl.classList.contains('is-verified')) {
+            return;
+        }
+        lastKey = key;
+
+        setStatus('checking', i18n.checking);
+
+        var phoneLocal = phone ? phone.value : '';
+        var fullPhone = phoneLocal.length === 9 ? ('+251' + phoneLocal) : '';
+
+        fetch(verifyUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': token ? token.getAttribute('content') : '',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                bank_code: bankInput.value || '',
+                transaction_reference: reference,
+                buyer_phone: fullPhone
+            })
+        })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+        .then(function (res) {
+            var state = (res.body && res.body.state) ? res.body.state : 'error';
+            var message = (res.body && res.body.message) ? res.body.message : i18n.checking;
+            if (state === 'verified') setStatus('verified', message);
+            else if (state === 'pending' || state === 'manual') setStatus('pending', message);
+            else setStatus('error', message);
+        })
+        .catch(function () {
+            setStatus('error', @json(__('public.verify_error')));
+        });
+    }
+
+    function scheduleVerify() {
+        clearTimeout(timer);
+        timer = setTimeout(runVerify, 900);
+    }
+
+    refInput.addEventListener('input', scheduleVerify);
+    refInput.addEventListener('blur', runVerify);
+    bankInput.addEventListener('change', runVerify);
+})();
+</script>
+@endpush

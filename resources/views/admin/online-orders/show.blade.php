@@ -34,7 +34,17 @@
                         <dt class="col-sm-4">Amount</dt><dd class="col-sm-8"><strong>{{ number_format($order->amount, 2) }} {{ $order->currency }}</strong></dd>
                         <dt class="col-sm-4">Bank</dt><dd class="col-sm-8">{{ $order->bank_code ?: '—' }}</dd>
                         <dt class="col-sm-4">Transaction ID</dt><dd class="col-sm-8"><code>{{ $order->transaction_reference ?: '—' }}</code></dd>
-                        <dt class="col-sm-4">Verify.et</dt><dd class="col-sm-8">{{ $order->verify_et_status ?: '—' }}</dd>
+                        <dt class="col-sm-4">Verify.et</dt>
+                        <dd class="col-sm-8">
+                            <code>{{ $order->verify_et_status ?: '—' }}</code>
+                            @if($order->verify_et_request_id)
+                                <div class="text-muted small mt-1">Request: {{ $order->verify_et_request_id }}</div>
+                            @endif
+                            <div class="text-muted small mt-1">
+                                Auto-pay only when receipt amount matches order amount
+                                ({{ number_format($order->amount, 2) }} {{ $order->currency }}).
+                            </div>
+                        </dd>
                         <dt class="col-sm-4">Status</dt>
                         <dd class="col-sm-8"><span class="badge badge-{{ $order->status === 'paid' ? 'success' : ($order->status === 'pending' ? 'warning' : 'secondary') }}">{{ ucfirst($order->status) }}</span></dd>
                         @if($order->ticket)

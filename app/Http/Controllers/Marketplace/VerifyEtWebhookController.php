@@ -5,35 +5,35 @@ namespace App\Http\Controllers\Marketplace;
 use App\Http\Controllers\Controller;
 use App\Models\TicketOrder;
 use App\Services\TicketOrderService;
+use App\Services\VerifyEtClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class VerifyEtWebhookController extends Controller
 {
-    public function __invoke(Request $request, TicketOrderService $orders)
+    public function __invoke(Request $request, TicketOrderService $orders, VerifyEtClient $verifyEt)
     {
-        $secret = config('services.verify_et.webhook_secret');
-        if (filled($secret)) {
-            // Soft check — Exact HMAC scheme can vary by Verify.et version; store payload either way.
-            $signature = $request->header('X-Verify-Signature')
-                ?? $request->header('X-Signature')
-                ?? '';
-            if ($signature === '') {
-                Log::info('Verify.et webhook without signature header');
-            }
+        $raw = $request->getContent();
+        $signature = $request->header('X-Webhook-Signature')
+            ?? $request->header('X-Verify-Signature')
+            ?? $request->header('X-Signature');
+        $timestamp = $request->header('X-Webhook-Timestamp')
+            ?? $request->header('X-Verify-Timestamp');
+
+        if ($request->header('X-Webhook-Test') === 'true') {
+            return response()->noContent();
+        }
+
+        if (! $verifyEt->verifyWebhookSignature($raw, $signature, $timestamp)) {
+            Log::warning('Verify.et webhook signature failed');
+
+            return response()->json(['ok' => false, 'message' => 'Invalid signature'], 401);
         }
 
         $payload = $request->all();
         $requestId = data_get($payload, 'requestId')
             ?? data_get($payload, 'data.requestId')
-            ?? data_get($payload, 'verification.id');
-
-        $status = strtolower((string) (
-            data_get($payload, 'verification.status')
-            ?? data_get($payload, 'data.verification.status')
-            ?? data_get($payload, 'status')
-            ?? ''
-        ));
+            ?? data_get($payload, 'verification.requestId');
 
         if (! $requestId) {
             return response()->json(['ok' => false], 422);
@@ -48,20 +48,12 @@ class VerifyEtWebhookController extends Controller
             return response()->json(['ok' => true, 'matched' => false]);
         }
 
-        $order->update([
-            'verify_et_status' => $status ?: $order->verify_et_status,
-            'verify_et_payload' => json_encode($payload),
-        ]);
-
-        // Auto-fulfill only on clearly successful verification; orgs can still mark paid manually.
-        if (in_array($status, ['verified', 'success', 'completed', 'paid'], true)) {
-            try {
-                $orders->markPaid($order, null, 'Auto-verified via Verify.et');
-            } catch (\Throwable $e) {
-                Log::warning('Verify.et auto mark paid failed', ['error' => $e->getMessage()]);
-            }
+        try {
+            $orders->applyVerifyEtResult($order, $payload);
+        } catch (\Throwable $e) {
+            Log::warning('Verify.et webhook apply failed', ['error' => $e->getMessage()]);
         }
 
-        return response()->json(['ok' => true, 'matched' => true]);
+        return response()->noContent();
     }
 }

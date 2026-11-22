@@ -7,17 +7,132 @@ use App\Models\Attendee;
 use App\Models\Event;
 use App\Models\TicketOrder;
 use App\Services\TicketOrderService;
+use App\Services\VerifyEtClient;
 use Illuminate\Http\Request;
 use RuntimeException;
 
 class CheckoutController extends Controller
 {
+    public function previewVerify(Request $request, Event $event, VerifyEtClient $verifyEt)
+    {
+        $event->load(['company.bankAccounts' => fn ($q) => $q->where('is_active', true)]);
+
+        if (! $event->company || ! $event->company->isPremium() || $event->company->isSuspended() || $event->status !== 'active' || $event->isExpired()) {
+            return response()->json(['ok' => false, 'state' => 'unavailable', 'message' => __('public.event_expired')], 422);
+        }
+
+        $data = $request->validate([
+            'bank_code' => ['nullable', 'string', 'max:40'],
+            'transaction_reference' => ['required', 'string', 'max:2000'],
+            'buyer_phone' => ['nullable', 'string', 'max:20'],
+        ]);
+
+        if (! $verifyEt->isConfigured()) {
+            return response()->json([
+                'ok' => true,
+                'state' => 'manual',
+                'message' => __('public.verify_manual'),
+            ]);
+        }
+
+        $bankCode = $data['bank_code'] ?? null;
+        $accounts = $event->company->bankAccounts;
+        $account = $accounts->first(function ($a) use ($bankCode) {
+            if (! $bankCode) {
+                return true;
+            }
+
+            return $a->bank_code === $bankCode || $a->bank_name === $bankCode;
+        }) ?? $accounts->first();
+
+        $bank = strtolower((string) ($account?->bank_code ?: $bankCode ?: 'cbe'));
+        if (! in_array($bank, ['cbe', 'telebirr', 'cbebirr', 'boa', 'mpesa', 'dashen', 'awash', 'siinqee', 'kaafiebirr', 'coopayebirr'], true)) {
+            $bank = 'cbe';
+        }
+
+        try {
+            $result = $verifyEt->verify(
+                $bank,
+                $data['transaction_reference'],
+                $account?->account_number,
+                (float) $event->price,
+                $data['buyer_phone'] ?? null,
+                'preview-'.md5($event->id.'|'.$data['transaction_reference'])
+            );
+        } catch (\Throwable $e) {
+            return response()->json([
+                'ok' => false,
+                'state' => 'error',
+                'message' => __('public.verify_error'),
+            ]);
+        }
+
+        if (($result['amount_matched'] ?? null) === true && ($result['verified'] ?? false) === true) {
+            if (($result['settlement_matched'] ?? null) === false) {
+                return response()->json([
+                    'ok' => false,
+                    'state' => 'settlement_mismatch',
+                    'message' => __('public.verify_settlement_mismatch'),
+                    'amount' => $result['amount'],
+                ]);
+            }
+
+            return response()->json([
+                'ok' => true,
+                'state' => 'verified',
+                'message' => __('public.verify_success', [
+                    'amount' => number_format((float) $result['amount'], 2),
+                    'currency' => $result['currency'] ?: $event->currency,
+                ]),
+                'amount' => $result['amount'],
+                'request_id' => $result['request_id'],
+            ]);
+        }
+
+        if (($result['amount_matched'] ?? null) === false) {
+            return response()->json([
+                'ok' => false,
+                'state' => 'amount_mismatch',
+                'message' => __('public.verify_amount_mismatch', [
+                    'paid' => number_format((float) ($result['amount'] ?? 0), 2),
+                    'expected' => number_format((float) $event->price, 2),
+                    'currency' => $event->currency,
+                ]),
+                'amount' => $result['amount'],
+            ]);
+        }
+
+        if (($result['verified'] ?? false) === false && in_array(($result['status'] ?? ''), ['pending', 'queued', ''], true)) {
+            return response()->json([
+                'ok' => true,
+                'state' => 'pending',
+                'message' => __('public.verify_pending'),
+                'request_id' => $result['request_id'],
+            ]);
+        }
+
+        return response()->json([
+            'ok' => false,
+            'state' => 'not_found',
+            'message' => __('public.verify_not_found'),
+            'request_id' => $result['request_id'] ?? null,
+        ]);
+    }
+
     public function store(Request $request, Event $event, TicketOrderService $orders)
     {
         $event->load('company');
 
         if ($event->isExpired()) {
             return back()->withErrors(['checkout' => __('public.event_expired')])->withInput();
+        }
+
+        // Normalize phone: UI sends 9 local digits; we store +251XXXXXXXXX
+        $local = preg_replace('/\D+/', '', (string) $request->input('buyer_phone_local', ''));
+        if (strlen($local) === 9) {
+            $request->merge(['buyer_phone' => '+251'.$local]);
+        } elseif (preg_match('/^\+251(\d{9})$/', (string) $request->input('buyer_phone'), $m)) {
+            $request->merge(['buyer_phone' => '+251'.$m[1]]);
         }
 
         $data = $request->validate([
@@ -28,10 +143,10 @@ class CheckoutController extends Controller
             'buyer_occupation' => ['nullable', 'string', 'max:150'],
             'yeneshaa_abat' => ['required', 'in:0,1'],
             'bank_code' => ['nullable', 'string', 'max:40'],
-            'transaction_reference' => ['required', 'string', 'max:120'],
+            'transaction_reference' => ['required', 'string', 'max:2000'],
         ], [
-            'buyer_phone.regex' => 'Phone must be +251 followed by 9 digits.',
-            'transaction_reference.required' => 'Enter the bank transaction / receipt ID.',
+            'buyer_phone.regex' => 'Phone must be 9 digits after +251.',
+            'transaction_reference.required' => 'Enter the bank transaction / receipt ID (or paste the full SMS).',
         ]);
 
         // Prevent obvious duplicate pending claims with same reference for same company.
