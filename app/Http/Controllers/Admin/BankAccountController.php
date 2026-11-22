@@ -23,6 +23,7 @@ class BankAccountController extends Controller
         $data = $request->validate([
             'bank_name' => ['required', 'string', 'max:120'],
             'bank_code' => ['nullable', 'string', 'max:40'],
+            'logo_url' => ['nullable', 'url', 'max:500'],
             'account_name' => ['required', 'string', 'max:120'],
             'account_number' => ['required', 'string', 'max:80'],
             'instructions' => ['nullable', 'string', 'max:1000'],
@@ -46,6 +47,7 @@ class BankAccountController extends Controller
         $data = $request->validate([
             'bank_name' => ['required', 'string', 'max:120'],
             'bank_code' => ['nullable', 'string', 'max:40'],
+            'logo_url' => ['nullable', 'url', 'max:500'],
             'account_name' => ['required', 'string', 'max:120'],
             'account_number' => ['required', 'string', 'max:80'],
             'instructions' => ['nullable', 'string', 'max:1000'],

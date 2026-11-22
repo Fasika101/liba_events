@@ -158,11 +158,20 @@
 <body>
 
     {{-- Action buttons --}}
-    @php $isAdminReceiptViewer = (($ticketReceiptViewer ?? null) === 'admin'); @endphp
+    @php
+        $receiptViewer = $ticketReceiptViewer ?? 'agent';
+        $publicOrderReturn = $ticket->ticketOrder
+            ? route('public.orders.show', $ticket->ticketOrder->public_code)
+            : route('public.profile');
+    @endphp
     <div class="action-bar px-3 no-print">
-        @if ($isAdminReceiptViewer)
+        @if ($receiptViewer === 'admin')
             <a href="{{ route('admin.ticket-sales.show', $ticket->event) }}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left mr-1"></i> Back to buyer list
+            </a>
+        @elseif ($receiptViewer === 'public')
+            <a href="{{ $publicOrderReturn }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left mr-1"></i> Return to ticket
             </a>
         @else
             <a href="{{ route('agent.tickets.create') }}" class="btn btn-outline-secondary">
@@ -175,11 +184,15 @@
         <button type="button" onclick="downloadReceipt(event)" class="btn btn-success">
             <i class="fas fa-download mr-1"></i> Save as Image (PNG)
         </button>
-        @if ($isAdminReceiptViewer)
+        @if ($receiptViewer === 'admin')
             <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary ml-auto">
                 <i class="fas fa-home mr-1"></i> Dashboard
             </a>
             <span class="text-muted small ml-2 align-self-center d-none d-md-inline">Tip: Print or PNG works best for WhatsApp.</span>
+        @elseif ($receiptViewer === 'public')
+            <a href="{{ route('public.profile') }}" class="btn btn-outline-secondary ml-auto">
+                <i class="fas fa-ticket-alt mr-1"></i> My tickets
+            </a>
         @else
             <a href="{{ route('agent.dashboard') }}" class="btn btn-outline-secondary ml-auto">
                 <i class="fas fa-home mr-1"></i> Dashboard

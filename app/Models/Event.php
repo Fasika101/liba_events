@@ -49,6 +49,18 @@ class Event extends Model
         return max(0, $this->capacity - ($this->tickets_count ?? $this->tickets()->count()));
     }
 
+    /**
+     * Expired when end_at has passed, or (no end_at) the start day is fully behind us.
+     */
+    public function isExpired(): bool
+    {
+        if ($this->end_at) {
+            return $this->end_at->isPast();
+        }
+
+        return $this->start_at && $this->start_at->copy()->endOfDay()->isPast();
+    }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);

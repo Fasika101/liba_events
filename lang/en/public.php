@@ -12,6 +12,8 @@ return [
     'no_events' => 'No public events yet. Check back soon.',
     'from' => 'From',
     'free' => 'Free',
+    'expired' => 'Expired',
+    'event_expired' => 'This event has ended. Registration is closed.',
     'spots_left' => ':count spots left',
     'unlimited' => 'Open seating',
     'view_event' => 'View event',

@@ -59,6 +59,41 @@ class OnlineOrderTest extends TestCase
             ->assertSee($event->title);
     }
 
+    public function test_expired_events_hidden_on_discover_but_shown_on_organizer(): void
+    {
+        ['company' => $company, 'event' => $event] = $this->premiumOrgWithEvent();
+        $event->update([
+            'start_at' => now()->subDays(10),
+            'end_at' => now()->subDays(5),
+            'title' => 'Expired Gathering',
+        ]);
+
+        $this->get(route('public.discover'))
+            ->assertOk()
+            ->assertDontSee('Expired Gathering');
+
+        $html = $this->get(route('public.organizers.show', $company))
+            ->assertOk()
+            ->assertSee('Expired Gathering')
+            ->assertSee(__('public.expired'))
+            ->assertSee(__('public.event_expired'))
+            ->getContent();
+
+        $this->assertStringNotContainsString(
+            'href="'.route('public.events.show', $event).'"',
+            $html
+        );
+
+        $this->post(route('public.events.checkout', $event), [
+            'buyer_name' => 'Abebe Kebede',
+            'buyer_phone' => '+251911234567',
+            'yeneshaa_abat' => '1',
+            'bank_code' => 'cbe',
+            'transaction_reference' => 'FT999',
+        ])->assertRedirect()
+            ->assertSessionHasErrors('checkout');
+    }
+
     public function test_standard_org_events_are_hidden(): void
     {
         $company = Company::factory()->create(['plan' => Company::PLAN_STANDARD]);
@@ -106,6 +141,10 @@ class OnlineOrderTest extends TestCase
             'source' => 'self',
             'buyer_phone' => '+251911234567',
         ]);
+
+        $ticket = $order->ticket()->first();
+        $this->assertNotNull($ticket);
+        $this->assertStringStartsWith('SUN-', $ticket->ticket_code); // "Sunday Gathering"
     }
 
     public function test_service_rejects_non_premium_company(): void

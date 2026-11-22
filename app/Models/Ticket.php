@@ -66,29 +66,39 @@ class Ticket extends Model
     }
 
     /**
-     * Generate the next sequential ticket code for a company.
-     * Format: {3-letter prefix}-{5-digit number}  e.g. ADD-00001
+     * Generate the next sequential ticket code for an event.
+     * Format: {first 3 letters of event title}-{5-digit number}  e.g. LET-00001
      *
      * Must be called inside a DB::transaction() to avoid race conditions.
      */
-    public static function generateCode(int $companyId, string $companyName): string
+    public static function generateCode(Event $event): string
     {
-        // Build prefix: first 3 alphanumeric chars of company name, uppercase
-        $prefix = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $companyName), 0, 3));
-        $prefix = str_pad($prefix, 3, 'X');   // pad with X if name is very short
+        $prefix = self::prefixFromEventTitle((string) $event->title, (int) $event->id);
 
         // Number starts at character position (strlen + dash + 1), 1-indexed for MySQL SUBSTRING
         $numPos = strlen($prefix) + 2;
 
         $max = DB::table('tickets')
-            ->join('events', 'tickets.event_id', '=', 'events.id')
-            ->where('events.company_id', $companyId)
-            ->where('tickets.ticket_code', 'like', $prefix . '-%')
+            ->where('event_id', $event->id)
+            ->where('ticket_code', 'like', $prefix.'-%')
             ->lockForUpdate()
             ->max(DB::raw("CAST(SUBSTRING(ticket_code, {$numPos}) AS UNSIGNED)"));
 
         $next = ((int) $max) + 1;
 
-        return $prefix . '-' . str_pad($next, 5, '0', STR_PAD_LEFT);
+        return $prefix.'-'.str_pad((string) $next, 5, '0', STR_PAD_LEFT);
+    }
+
+    public static function prefixFromEventTitle(string $title, int $eventId = 0): string
+    {
+        $prefix = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $title) ?? '', 0, 3));
+
+        if (strlen($prefix) < 3) {
+            // Non-Latin titles (e.g. Amharic): stable ASCII fallback from event id
+            $fallback = 'E'.str_pad((string) max($eventId, 0), 2, '0', STR_PAD_LEFT);
+            $prefix = strtoupper(substr($prefix.$fallback, 0, 3));
+        }
+
+        return str_pad($prefix, 3, 'X');
     }
 }

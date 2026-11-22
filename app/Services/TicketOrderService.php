@@ -123,7 +123,7 @@ class TicketOrderService
                 'yeneshaa_abat' => $order->yeneshaa_abat,
                 'price_paid' => $order->amount,
                 'currency' => $order->currency,
-                'ticket_code' => Ticket::generateCode($company->id, $company->name),
+                'ticket_code' => Ticket::generateCode($event),
                 'sold_at' => now(),
             ]);
 

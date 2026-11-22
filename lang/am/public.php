@@ -12,6 +12,8 @@ return [
     'no_events' => 'እስካሁን ምንም የህዝብ ዝግጅት የለም። በቅርቡ ይመልከቱ።',
     'from' => 'ከ',
     'free' => 'ነፃ',
+    'expired' => 'ጊዜው አልፏል',
+    'event_expired' => 'ይህ ዝግጅት አልቋል። ምዝገባ ተዘግቷል።',
     'spots_left' => ':count ቦታ ይቀራል',
     'unlimited' => 'ክፍት ቦታ',
     'view_event' => 'ዝግጅቱን ይመልከቱ',

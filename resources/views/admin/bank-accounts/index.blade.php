@@ -16,6 +16,9 @@
     @if (session('status'))
         <div class="alert alert-success">{{ session('status') }}</div>
     @endif
+    @if ($errors->any())
+        <div class="alert alert-danger">{{ $errors->first() }}</div>
+    @endif
 
     @unless($company->isPremium())
         <div class="alert alert-warning">
@@ -43,6 +46,11 @@
                                     <option value="{{ $code }}" @selected(old('bank_code') === $code)>{{ $label }}</option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Bank logo URL</label>
+                            <input type="url" name="logo_url" class="form-control" value="{{ old('logo_url') }}" placeholder="https://…/bank-logo.png">
+                            <small class="text-muted">Paste a direct image link. Shown to buyers on the event signup page.</small>
                         </div>
                         <div class="form-group">
                             <label>Account holder name</label>
@@ -82,10 +90,38 @@
                                 @forelse ($accounts as $account)
                                     <tr>
                                         <td>
-                                            <strong>{{ $account->bank_name }}</strong>
-                                            @if($account->bank_code)
-                                                <div class="text-muted small">{{ $account->bank_code }}</div>
-                                            @endif
+                                            <div class="d-flex align-items-center">
+                                                @if($account->resolvedLogoUrl())
+                                                    <img src="{{ $account->resolvedLogoUrl() }}" alt=""
+                                                         style="width:36px;height:36px;object-fit:contain;border-radius:8px;background:#fff;padding:3px;margin-right:10px;">
+                                                @else
+                                                    <span class="d-inline-flex align-items-center justify-content-center mr-2 rounded bg-light"
+                                                          style="width:36px;height:36px;font-size:.75rem;font-weight:700;">
+                                                        {{ strtoupper(substr($account->bank_name, 0, 2)) }}
+                                                    </span>
+                                                @endif
+                                                <div>
+                                                    <strong>{{ $account->bank_name }}</strong>
+                                                    @if($account->bank_code)
+                                                        <div class="text-muted small">{{ $account->bank_code }}</div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <form method="POST" action="{{ route('admin.accounts.update', $account) }}" class="mt-2">
+                                                @csrf @method('PUT')
+                                                <input type="hidden" name="bank_name" value="{{ $account->bank_name }}">
+                                                <input type="hidden" name="bank_code" value="{{ $account->bank_code }}">
+                                                <input type="hidden" name="account_name" value="{{ $account->account_name }}">
+                                                <input type="hidden" name="account_number" value="{{ $account->account_number }}">
+                                                <input type="hidden" name="instructions" value="{{ $account->instructions }}">
+                                                <input type="hidden" name="is_active" value="{{ $account->is_active ? 1 : 0 }}">
+                                                <div class="input-group input-group-sm">
+                                                    <input type="url" name="logo_url" class="form-control" value="{{ $account->logo_url }}" placeholder="Logo URL">
+                                                    <div class="input-group-append">
+                                                        <button class="btn btn-outline-primary">Save logo</button>
+                                                    </div>
+                                                </div>
+                                            </form>
                                         </td>
                                         <td>
                                             <div>{{ $account->account_name }}</div>
@@ -99,6 +135,7 @@
                                                 @csrf @method('PUT')
                                                 <input type="hidden" name="bank_name" value="{{ $account->bank_name }}">
                                                 <input type="hidden" name="bank_code" value="{{ $account->bank_code }}">
+                                                <input type="hidden" name="logo_url" value="{{ $account->logo_url }}">
                                                 <input type="hidden" name="account_name" value="{{ $account->account_name }}">
                                                 <input type="hidden" name="account_number" value="{{ $account->account_number }}">
                                                 <input type="hidden" name="instructions" value="{{ $account->instructions }}">

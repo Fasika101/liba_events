@@ -13,8 +13,11 @@ class PublicTicketReceiptController extends Controller
             abort(403, 'This receipt link is invalid or has expired.');
         }
 
-        $ticket->load('event', 'agent');
+        $ticket->load('event', 'agent', 'ticketOrder');
 
-        return view('agent.tickets.receipt', compact('ticket'));
+        return view('agent.tickets.receipt', [
+            'ticket' => $ticket,
+            'ticketReceiptViewer' => 'public',
+        ]);
     }
 }

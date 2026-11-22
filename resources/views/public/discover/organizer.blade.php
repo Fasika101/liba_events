@@ -15,19 +15,39 @@
 
     <div class="mp-grid">
         @forelse ($events as $event)
-            @php $photo = $event->photo_path ? asset('storage/'.$event->photo_path) : null; @endphp
-            <a class="mp-card" href="{{ route('public.events.show', $event) }}">
-                <div class="mp-card-media" @if($photo) style="background-image:url('{{ $photo }}')" @endif></div>
-                <div class="mp-card-body">
-                    <h3>{{ $event->title }}</h3>
-                    <p class="mp-meta">{{ optional($event->start_at)->format('D, M j · g:i A') }}</p>
-                    <div class="mp-price">
-                        @if((float)$event->price <= 0) {{ __('public.free') }}
-                        @else {{ number_format($event->price, 2) }} {{ $event->currency }}
-                        @endif
+            @php
+                $photo = $event->photo_path ? asset('storage/'.$event->photo_path) : null;
+                $expired = $event->isExpired();
+            @endphp
+
+            @if($expired)
+                <div class="mp-card is-expired is-disabled" aria-disabled="true">
+                    <div class="mp-card-media" @if($photo) style="background-image:url('{{ $photo }}')" @endif>
+                        <span class="mp-expired-ribbon">{{ __('public.expired') }}</span>
+                    </div>
+                    <div class="mp-card-body">
+                        <div class="mp-row" style="margin-bottom:6px;">
+                            <h3 style="margin:0;">{{ $event->title }}</h3>
+                            <span class="mp-badge mp-badge-expired">{{ __('public.expired') }}</span>
+                        </div>
+                        <p class="mp-meta">{{ optional($event->start_at)->format('D, M j · g:i A') }}</p>
+                        <p class="mp-meta" style="margin:0;color:#cbd5e1;">{{ __('public.event_expired') }}</p>
                     </div>
                 </div>
-            </a>
+            @else
+                <a class="mp-card" href="{{ route('public.events.show', $event) }}">
+                    <div class="mp-card-media" @if($photo) style="background-image:url('{{ $photo }}')" @endif></div>
+                    <div class="mp-card-body">
+                        <h3>{{ $event->title }}</h3>
+                        <p class="mp-meta">{{ optional($event->start_at)->format('D, M j · g:i A') }}</p>
+                        <div class="mp-price">
+                            @if((float)$event->price <= 0) {{ __('public.free') }}
+                            @else {{ number_format($event->price, 2) }} {{ $event->currency }}
+                            @endif
+                        </div>
+                    </div>
+                </a>
+            @endif
         @empty
             <div class="mp-empty">{{ __('public.no_events') }}</div>
         @endforelse

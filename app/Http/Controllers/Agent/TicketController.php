@@ -161,11 +161,10 @@ class TicketController extends Controller
         }
 
         $ticket = DB::transaction(function () use ($data, $event) {
-            $company = $event->company;
-
             return Ticket::create([
                 'event_id'         => $event->id,
                 'agent_id'         => auth()->id(),
+                'source'           => 'agent',
                 'buyer_name'       => $data['buyer_name'],
                 'buyer_email'      => $data['buyer_email'] ?? null,
                 'buyer_phone'      => $data['buyer_phone'] ?? null,
@@ -174,7 +173,7 @@ class TicketController extends Controller
                 'yeneshaa_abat'    => (bool) (int) $data['yeneshaa_abat'],
                 'price_paid'       => $event->price,
                 'currency'         => $event->currency,
-                'ticket_code'      => Ticket::generateCode($event->company_id, $company->name),
+                'ticket_code'      => Ticket::generateCode($event),
                 'sold_at'          => now(),
             ]);
         });
@@ -197,6 +196,9 @@ class TicketController extends Controller
 
         $ticket->load('event', 'agent');
 
-        return view('agent.tickets.receipt', compact('ticket'));
+        return view('agent.tickets.receipt', [
+            'ticket' => $ticket,
+            'ticketReceiptViewer' => 'agent',
+        ]);
     }
 }

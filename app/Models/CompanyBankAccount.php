@@ -11,6 +11,7 @@ class CompanyBankAccount extends Model
         'company_id',
         'bank_name',
         'bank_code',
+        'logo_url',
         'account_name',
         'account_number',
         'instructions',
@@ -29,6 +30,11 @@ class CompanyBankAccount extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function resolvedLogoUrl(): ?string
+    {
+        return filled($this->logo_url) ? $this->logo_url : null;
     }
 
     public function copyText(): string

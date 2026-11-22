@@ -29,7 +29,10 @@ body.mp-body {
     margin: 0;
     min-height: 100vh;
     min-height: 100dvh;
-    font-family: Inter, system-ui, sans-serif;
+    font-family: Ubuntu, "Segoe UI", system-ui, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 400;
+    letter-spacing: 0.01em;
     -webkit-font-smoothing: antialiased;
     color: var(--mp-ink);
     background: var(--mp-bg);
@@ -132,9 +135,9 @@ a { color: inherit; text-decoration: none; }
 
 .mp-brand strong {
     display: block;
-    font-size: 1.05rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
     color: #fff;
     line-height: 1.15;
 }
@@ -142,7 +145,8 @@ a { color: inherit; text-decoration: none; }
 .mp-brand small {
     display: block;
     color: var(--mp-muted);
-    font-size: 0.72rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -154,10 +158,12 @@ a { color: inherit; text-decoration: none; }
     background: rgba(255, 255, 255, 0.08);
     color: #fff;
     border-radius: 999px;
-    min-height: 40px;
-    min-width: 48px;
-    font-weight: 700;
-    font-size: 0.85rem;
+    min-height: 36px;
+    min-width: 44px;
+    font-family: Ubuntu, sans-serif;
+    font-weight: 500;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
 }
 
 .mp-main {
@@ -177,18 +183,21 @@ a { color: inherit; text-decoration: none; }
 }
 
 .mp-hero h1 {
-    font-size: clamp(1.7rem, 6vw, 2.2rem);
-    font-weight: 800;
-    line-height: 1.1;
+    font-family: Ubuntu, sans-serif;
+    font-size: clamp(1.35rem, 5vw, 1.75rem);
+    font-weight: 500;
+    line-height: 1.2;
     margin: 0 0 8px;
-    letter-spacing: -0.03em;
+    letter-spacing: 0.01em;
     color: #fff;
 }
 
 .mp-hero p {
-    margin: 0 0 18px;
+    margin: 0 0 16px;
     color: var(--mp-muted);
-    font-size: 0.95rem;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    font-weight: 300;
 }
 
 .mp-search {
@@ -221,14 +230,16 @@ a { color: inherit; text-decoration: none; }
 
 .mp-search button,
 .mp-btn {
-    min-height: 48px;
+    min-height: 44px;
     border: none;
     border-radius: 12px;
     background: linear-gradient(135deg, #3730a3, #4f6ef7);
     color: #fff;
-    font-weight: 700;
-    padding: 0 16px;
-    font-size: 0.92rem;
+    font-family: Ubuntu, sans-serif;
+    font-weight: 500;
+    padding: 0 14px;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
     box-shadow: 0 8px 24px rgba(79, 110, 247, 0.4);
     cursor: pointer;
 }
@@ -251,6 +262,52 @@ a { color: inherit; text-decoration: none; }
     justify-content: center;
 }
 
+.mp-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.mp-btn-action {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 12px 16px;
+    white-space: nowrap;
+    line-height: 1.2;
+    text-align: center;
+}
+
+.mp-btn-action i {
+    font-size: 0.85rem;
+    flex: 0 0 auto;
+}
+
+.mp-btn-action span {
+    display: inline-block;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+@media (min-width: 480px) {
+    .mp-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .mp-btn-action {
+        width: auto;
+        min-width: 160px;
+        flex: 1 1 auto;
+    }
+}
+
 .mp-grid {
     display: grid;
     gap: 14px;
@@ -267,6 +324,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 .mp-card-media {
+    position: relative;
     aspect-ratio: 16 / 10;
     background:
         linear-gradient(160deg, rgba(55, 48, 163, 0.45), rgba(79, 110, 247, 0.25)),
@@ -277,27 +335,31 @@ a { color: inherit; text-decoration: none; }
 
 .mp-kicker {
     display: inline-block;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: #93c5fd;
-    font-weight: 700;
+    font-weight: 500;
     margin-bottom: 6px;
 }
 
 .mp-card h2,
 .mp-card h3 {
     margin: 0 0 6px;
-    font-size: 1.15rem;
-    font-weight: 700;
-    line-height: 1.2;
+    font-family: Ubuntu, sans-serif;
+    font-size: 0.98rem;
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: 0.01em;
     color: #fff;
 }
 
 .mp-meta {
     color: var(--mp-muted);
-    font-size: 0.88rem;
+    font-size: 0.74rem;
+    line-height: 1.45;
     margin: 0 0 10px;
+    font-weight: 300;
 }
 
 .mp-row {
@@ -308,7 +370,9 @@ a { color: inherit; text-decoration: none; }
 }
 
 .mp-price {
-    font-weight: 800;
+    font-weight: 500;
+    font-size: 0.82rem;
+    letter-spacing: 0.03em;
     color: #a5b4fc;
 }
 
@@ -316,6 +380,8 @@ a { color: inherit; text-decoration: none; }
     text-align: center;
     color: var(--mp-muted);
     padding: 40px 12px;
+    font-size: 0.8rem;
+    font-weight: 300;
 }
 
 /* Bottom nav with icons */
@@ -345,9 +411,10 @@ a { color: inherit; text-decoration: none; }
     gap: 4px;
     border-radius: 14px;
     color: rgba(255, 255, 255, 0.45);
-    font-weight: 600;
-    font-size: 0.7rem;
-    letter-spacing: 0.01em;
+    font-weight: 500;
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     transition: background .18s ease, color .18s ease, box-shadow .18s ease;
 }
 
@@ -452,6 +519,44 @@ a { color: inherit; text-decoration: none; }
 .mp-badge-pending { background: rgba(251, 191, 36, 0.15); color: var(--mp-warn); }
 .mp-badge-paid { background: rgba(52, 211, 153, 0.15); color: var(--mp-success); }
 .mp-badge-rejected { background: rgba(239, 68, 68, 0.15); color: var(--mp-danger); }
+.mp-badge-expired { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
+
+.mp-expired-ribbon {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 2;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #e2e8f0;
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    backdrop-filter: blur(8px);
+}
+
+.mp-card.is-expired {
+    opacity: 0.78;
+}
+
+.mp-card.is-expired .mp-card-media {
+    filter: grayscale(0.45);
+}
+
+.mp-card.is-disabled {
+    cursor: not-allowed;
+    pointer-events: none;
+    user-select: none;
+}
+
+.mp-empty-expired {
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 14px;
+    background: rgba(148, 163, 184, 0.08);
+}
 
 .mp-back {
     display: inline-flex;
@@ -482,4 +587,228 @@ a { color: inherit; text-decoration: none; }
 
 @media (min-width: 768px) {
     .mp-grid.two { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── Luxury event signup ─────────────────────────────── */
+.mp-display {
+    font-family: Ubuntu, sans-serif;
+    font-weight: 500;
+    font-size: clamp(1.35rem, 5vw, 1.7rem);
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    color: #fff;
+    margin: 0 0 14px;
+}
+
+.mp-display-sm {
+    font-size: clamp(1.15rem, 4vw, 1.35rem);
+    margin-bottom: 8px;
+}
+
+.mp-section-title {
+    font-family: Ubuntu, sans-serif;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.72);
+    margin: 0 0 8px;
+}
+
+.mp-event-hero {
+    margin-bottom: 16px;
+}
+
+.mp-event-facts {
+    display: grid;
+    gap: 10px;
+    margin: 4px 0 14px;
+}
+
+.mp-fact-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.42);
+    margin-bottom: 2px;
+}
+
+.mp-fact-value {
+    font-family: Ubuntu, sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.mp-prose {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.76rem;
+    line-height: 1.65;
+    white-space: pre-line;
+    font-weight: 300;
+}
+
+.mp-event-about {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 14px;
+    margin-top: 4px;
+}
+
+.mp-lux-panel {
+    margin-bottom: 16px;
+}
+
+.mp-lux-eyebrow {
+    margin: 0 0 4px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #a5b4fc;
+}
+
+.mp-lux-hint {
+    margin: 0 0 16px;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.48);
+    font-weight: 400;
+}
+
+.mp-account-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.mp-bank-logo {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 5px;
+    flex: 0 0 auto;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.mp-bank-logo-fallback {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #3730a3;
+    background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+}
+
+.mp-account-bank {
+    display: block;
+    font-family: Ubuntu, sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 2px;
+}
+
+.mp-account-name {
+    display: block;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 0.02em;
+    font-weight: 300;
+}
+
+.mp-account-number {
+    display: block;
+    font-size: 0.86rem;
+    margin: 8px 0 10px;
+    word-break: break-all;
+    color: #c7d2fe;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+}
+
+.mp-btn-slim {
+    min-height: 38px;
+    padding: 0 14px;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.mp-form-lux label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.45);
+    margin-bottom: 7px;
+}
+
+.mp-form-lux .field {
+    margin-bottom: 12px;
+}
+
+.mp-form-lux input,
+.mp-form-lux select,
+.mp-form-lux textarea {
+    min-height: 46px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.045);
+    padding: 10px 12px;
+    font-size: 16px; /* keep 16px to avoid iOS zoom */
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.mp-form-lux input::placeholder {
+    color: rgba(255, 255, 255, 0.28);
+    font-weight: 400;
+}
+
+.mp-form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2px 12px;
+}
+
+.mp-form-grid .field-span {
+    grid-column: 1 / -1;
+}
+
+.mp-btn-lux {
+    margin-top: 8px;
+    min-height: 50px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3730a3, #4f6ef7 55%, #7c5cbf);
+    box-shadow: 0 10px 30px rgba(79, 110, 247, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.mp-form-lux .mp-error {
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+}
+
+@media (min-width: 560px) {
+    .mp-form-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .mp-event-facts {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px 18px;
+    }
 }

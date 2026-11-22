@@ -16,6 +16,10 @@ class CheckoutController extends Controller
     {
         $event->load('company');
 
+        if ($event->isExpired()) {
+            return back()->withErrors(['checkout' => __('public.event_expired')])->withInput();
+        }
+
         $data = $request->validate([
             'buyer_name' => ['required', 'string', 'max:255'],
             'buyer_email' => ['nullable', 'email', 'max:255'],
