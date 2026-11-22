@@ -48,7 +48,7 @@ return [
     'organizers_title' => 'Event organizers',
     'organizers_sub' => 'Explore organizations hosting gatherings on this platform.',
     'see_events' => 'See events',
-    'no_organizers' => 'No subscribed organizers are listed yet.',
+    'no_organizers' => 'No Premium organizations yet. Organizations appear here after they subscribe (Premium plan).',
     'profile_title' => 'Your purchases',
     'profile_empty' => 'No purchases yet. Discover an event to get started.',
     'continue_telegram' => 'Continue with Telegram',

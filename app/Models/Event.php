@@ -76,6 +76,13 @@ class Event extends Model
             $q->where('end_at', '>=', now())
                 ->orWhere(function ($q2) {
                     $q2->whereNull('end_at')->where('start_at', '>=', now()->subDay());
+                })
+                // Still list events that started but have not ended (or have no end date yet).
+                ->orWhere(function ($q3) {
+                    $q3->where('start_at', '<=', now())
+                        ->where(function ($q4) {
+                            $q4->whereNull('end_at')->orWhere('end_at', '>=', now());
+                        });
                 });
         });
     }

@@ -36,11 +36,13 @@ class DiscoverController extends Controller
     {
         $q = trim((string) $request->get('q', ''));
 
+        // Premium (subscribed) organizations only — show even if they have no upcoming events yet.
         $organizers = Company::query()
             ->publicMarketplace()
-            ->withCount(['events as active_events_count' => fn ($query) => $query->where('status', 'active')])
+            ->withCount([
+                'events as active_events_count' => fn ($query) => $query->where('status', 'active'),
+            ])
             ->when($q !== '', fn ($query) => $query->where('name', 'like', "%{$q}%"))
-            ->having('active_events_count', '>', 0)
             ->orderBy('name')
             ->simplePaginate(12)
             ->withQueryString();
@@ -58,8 +60,7 @@ class DiscoverController extends Controller
             ->withCount('tickets')
             ->where('company_id', $company->id)
             ->where('status', 'active')
-            ->upcoming()
-            ->orderBy('start_at')
+            ->orderByDesc('start_at')
             ->get();
 
         return view('public.discover.organizer', compact('company', 'events'));

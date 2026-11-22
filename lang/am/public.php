@@ -48,7 +48,7 @@ return [
     'organizers_title' => 'የዝግጅት አዘጋጆች',
     'organizers_sub' => 'በዚህ መድረክ ዝግጅት የሚያዘጋጁ ድርጅቶችን ያስሱ።',
     'see_events' => 'ዝግጅቶችን ይመልከቱ',
-    'no_organizers' => 'እስካሁን ምንም የተመዘገቡ አዘጋጆች የሉም።',
+    'no_organizers' => 'እስካሁን ምንም ፕሪሚየም ድርጅቶች የሉም። ድርጅቶች ፕሪሚየም ካደረጉ በኋላ እዚህ ይታያሉ።',
     'profile_title' => 'ግዢዎችዎ',
     'profile_empty' => 'እስካሁን ግዢ የለም። ዝግጅት በመፈለግ ይጀምሩ።',
     'continue_telegram' => 'በቴሌግራም ቀጥል',

@@ -20,7 +20,7 @@
                     <div class="mp-kicker">{{ __('public.organized_by') }}</div>
                     <h2>{{ $org->name }}</h2>
                     <p class="mp-meta">
-                        {{ $org->active_events_count }} {{ __('public.upcoming') }}
+                        {{ $org->active_events_count }} {{ __('public.discover') }}
                         @if($org->address) · {{ $org->address }} @endif
                     </p>
                     <span class="mp-btn mp-btn-secondary" style="min-height:40px;padding:8px 14px;display:inline-flex;">{{ __('public.see_events') }}</span>
