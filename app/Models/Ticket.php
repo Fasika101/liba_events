@@ -16,6 +16,10 @@ class Ticket extends Model
     protected $fillable = [
         'event_id',
         'agent_id',
+        'source',
+        'attendee_id',
+        'ticket_order_id',
+        'payment_reference',
         'buyer_name',
         'buyer_email',
         'buyer_phone',
@@ -49,6 +53,16 @@ class Ticket extends Model
     public function agent(): BelongsTo
     {
         return $this->belongsTo(User::class, 'agent_id');
+    }
+
+    public function attendee(): BelongsTo
+    {
+        return $this->belongsTo(Attendee::class);
+    }
+
+    public function ticketOrder(): BelongsTo
+    {
+        return $this->belongsTo(TicketOrder::class);
     }
 
     /**

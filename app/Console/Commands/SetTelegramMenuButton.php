@@ -13,7 +13,7 @@ class SetTelegramMenuButton extends Command
     public function handle(): int
     {
         $token = config('services.telegram.bot_token');
-        $loginUrl = url('/login');
+        $appUrl = url('/discover');
 
         if (!$token) {
             $this->error('TELEGRAM_BOT_TOKEN is not set in .env');
@@ -24,7 +24,7 @@ class SetTelegramMenuButton extends Command
             'type' => 'web_app',
             'text' => 'Open App',
             'web_app' => [
-                'url' => $loginUrl,
+                'url' => $appUrl,
             ],
         ];
 
@@ -40,7 +40,7 @@ class SetTelegramMenuButton extends Command
         $data = json_decode($response, true);
 
         if ($data['ok'] ?? false) {
-            $this->info("Menu button set successfully. Agents can now tap 'Open App' in the bot to open: {$loginUrl}");
+            $this->info("Menu button set successfully. Users can tap 'Open App' in the bot to open: {$appUrl}");
             return 0;
         }
 

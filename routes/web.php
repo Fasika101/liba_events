@@ -1,6 +1,12 @@
 <?php
 
 use App\Http\Controllers\PublicTicketReceiptController;
+use App\Http\Controllers\Admin\BankAccountController as AdminBankAccountController;
+use App\Http\Controllers\Admin\OnlineOrderController as AdminOnlineOrderController;
+use App\Http\Controllers\Marketplace\CheckoutController as MarketplaceCheckoutController;
+use App\Http\Controllers\Marketplace\DiscoverController as MarketplaceDiscoverController;
+use App\Http\Controllers\Marketplace\ProfileController as MarketplaceProfileController;
+use App\Http\Controllers\Marketplace\VerifyEtWebhookController;
 use App\Http\Controllers\Admin\AgentController;
 use App\Http\Controllers\Admin\CheckInController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
@@ -30,6 +36,21 @@ Route::redirect('/', 'login');
 
 Route::get('/tickets/{ticket}/receipt/public', [PublicTicketReceiptController::class, 'show'])
     ->name('tickets.public-receipt');
+
+Route::post('/webhooks/verify-et', VerifyEtWebhookController::class)->name('webhooks.verify-et');
+
+Route::middleware('public.locale')->prefix('discover')->name('public.')->group(function () {
+    Route::get('/', [MarketplaceDiscoverController::class, 'index'])->name('discover');
+    Route::get('/organizers', [MarketplaceDiscoverController::class, 'organizers'])->name('organizers');
+    Route::get('/organizers/{company}', [MarketplaceDiscoverController::class, 'organizer'])->name('organizers.show');
+    Route::get('/events/{event}', [MarketplaceDiscoverController::class, 'event'])->name('events.show');
+    Route::post('/events/{event}/checkout', [MarketplaceCheckoutController::class, 'store'])->name('events.checkout');
+    Route::get('/orders/{publicCode}', [MarketplaceCheckoutController::class, 'show'])->name('orders.show');
+    Route::get('/orders/{publicCode}/ticket', [MarketplaceProfileController::class, 'ticketLink'])->name('orders.ticket');
+    Route::get('/me', [MarketplaceProfileController::class, 'show'])->name('profile');
+    Route::post('/locale', [MarketplaceProfileController::class, 'setLocale'])->name('locale');
+    Route::post('/telegram-auth', [MarketplaceProfileController::class, 'authTelegram'])->name('telegram-auth');
+});
 
 Route::post('/logout', function (Request $request) {
     auth()->logout();
@@ -145,6 +166,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('bulk-sms/sender-id/request', [AdminBulkSmsController::class, 'requestSenderId'])->name('bulk-sms.sender-id.request');
         Route::post('bulk-sms/sender-id/payment', [AdminBulkSmsController::class, 'uploadSenderIdPayment'])->name('bulk-sms.sender-id.payment');
         Route::get('bulk-sms/{bulkSmsLog}', [AdminBulkSmsController::class, 'show'])->name('bulk-sms.show');
+
+        Route::get('accounts', [AdminBankAccountController::class, 'index'])->name('accounts.index');
+        Route::post('accounts', [AdminBankAccountController::class, 'store'])->name('accounts.store');
+        Route::put('accounts/{bankAccount}', [AdminBankAccountController::class, 'update'])->name('accounts.update');
+        Route::delete('accounts/{bankAccount}', [AdminBankAccountController::class, 'destroy'])->name('accounts.destroy');
+
+        Route::get('online-orders', [AdminOnlineOrderController::class, 'index'])->name('online-orders.index');
+        Route::get('online-orders/{onlineOrder}', [AdminOnlineOrderController::class, 'show'])->name('online-orders.show');
+        Route::post('online-orders/{onlineOrder}/paid', [AdminOnlineOrderController::class, 'markPaid'])->name('online-orders.paid');
+        Route::post('online-orders/{onlineOrder}/reject', [AdminOnlineOrderController::class, 'reject'])->name('online-orders.reject');
     });
 
     Route::middleware(['role:agent', 'company.active'])->prefix('agent')->name('agent.')->group(function () {

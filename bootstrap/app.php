@@ -16,6 +16,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'registration.enabled' => \App\Http\Middleware\EnsurePublicRegistrationEnabled::class,
             'organization.registration.enabled' => \App\Http\Middleware\EnsureOrganizationRegistrationEnabled::class,
             'company.active'       => \App\Http\Middleware\EnsureCompanyNotSuspended::class,
+            'public.locale'        => \App\Http\Middleware\SetPublicLocale::class,
+        ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/verify-et',
+            'discover/telegram-auth',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -27,6 +27,26 @@ class CustomerTicketSmsService
             return null;
         }
 
+        return $this->sendTicketSaleMessage($ticket, $company);
+    }
+
+    /**
+     * Online / Telegram self-purchase: always attempt SMS when org marks order paid.
+     */
+    public function sendForSelfPurchasePaid(Ticket $ticket): ?CompanySmsLog
+    {
+        $ticket->loadMissing('event.company');
+        $company = $ticket->event?->company;
+
+        if ($company === null || ! $company->isPremium()) {
+            return null;
+        }
+
+        return $this->sendTicketSaleMessage($ticket, $company);
+    }
+
+    private function sendTicketSaleMessage(Ticket $ticket, Company $company): ?CompanySmsLog
+    {
         if (! filled($ticket->buyer_phone)) {
             return null;
         }

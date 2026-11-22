@@ -682,6 +682,8 @@
                             ['admin.events.index',      'fa-calendar-alt',   'Events'],
                             ['admin.agents.index',      'fa-users',          'Agents'],
                             ['admin.ticket-sales.index','fa-chart-bar',      'Ticket Sales'],
+                            ['admin.online-orders.index','fa-mobile-alt',    'Online Orders'],
+                            ['admin.accounts.index',    'fa-university',     'Accounts'],
                             ['admin.customers.index',   'fa-address-book',   'Customers'],
                             ['admin.checkin.index',     'fa-qrcode',         'Check-In'],
                             ['admin.premium.index',     'fa-crown',          'Premium Features'],

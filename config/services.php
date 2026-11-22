@@ -40,4 +40,10 @@ return [
         'bot_username' => env('TELEGRAM_BOT_USERNAME'),
     ],
 
+    'verify_et' => [
+        'api_key' => env('VERIFY_ET_API_KEY'),
+        'base_url' => env('VERIFY_ET_BASE_URL', 'https://verify.et'),
+        'webhook_secret' => env('VERIFY_ET_WEBHOOK_SECRET'),
+    ],
+
 ];

@@ -169,4 +169,20 @@ class Company extends Model
     {
         return $this->hasMany(CompanyBulkSmsLog::class)->latest();
     }
+
+    public function bankAccounts(): HasMany
+    {
+        return $this->hasMany(CompanyBankAccount::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function ticketOrders(): HasMany
+    {
+        return $this->hasMany(TicketOrder::class)->latest();
+    }
+
+    public function scopePublicMarketplace($query)
+    {
+        return $query->where('plan', self::PLAN_PREMIUM)
+            ->where('is_suspended', false);
+    }
 }

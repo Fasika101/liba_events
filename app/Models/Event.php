@@ -63,4 +63,20 @@ class Event extends Model
     {
         return $query->where('company_id', $companyId);
     }
+
+    public function scopePubliclyListed($query)
+    {
+        return $query->where('status', 'active')
+            ->whereHas('company', fn ($q) => $q->publicMarketplace());
+    }
+
+    public function scopeUpcoming($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('end_at', '>=', now())
+                ->orWhere(function ($q2) {
+                    $q2->whereNull('end_at')->where('start_at', '>=', now()->subDay());
+                });
+        });
+    }
 }
