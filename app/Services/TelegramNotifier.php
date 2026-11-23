@@ -97,25 +97,89 @@ class TelegramNotifier
         return $sent;
     }
 
-    public function broadcast(string $messageEn, ?string $messageAm = null): int
-    {
-        $sent = 0;
+    /**
+     * @return array{users_sent: int, users_eligible: int, channel_posted: bool, channel_error: ?string}
+     */
+    public function broadcast(
+        string $messageEn,
+        ?string $messageAm = null,
+        bool $toUsers = true,
+        bool $toChannel = false,
+    ): array {
+        $usersSent = 0;
+        $eligible = $this->notifiableAttendeesQuery()->count();
 
-        Attendee::query()
+        if ($toUsers) {
+            $this->notifiableAttendeesQuery()
+                ->orderBy('id')
+                ->chunkById(100, function ($attendees) use ($messageEn, $messageAm, &$usersSent) {
+                    foreach ($attendees as $attendee) {
+                        $text = ($attendee->locale === 'am' && filled($messageAm)) ? $messageAm : $messageEn;
+                        if ($this->bot->sendMessage($attendee->telegram_id, $text, [
+                            'reply_markup' => [
+                                'inline_keyboard' => [[
+                                    ['text' => $attendee->locale === 'am' ? 'መተግበሪያ ክፈት' : 'Open App', 'web_app' => ['url' => $this->bot->miniAppUrl()]],
+                                ]],
+                            ],
+                        ])) {
+                            $usersSent++;
+                        }
+                    }
+                });
+        }
+
+        $channelPosted = false;
+        $channelError = null;
+
+        if ($toChannel) {
+            if (! $this->bot->channelConfigured()) {
+                $channelError = 'TELEGRAM_CHANNEL_ID is not set.';
+            } else {
+                $channelText = filled($messageAm)
+                    ? trim($messageEn."\n\n————\n\n".$messageAm)
+                    : $messageEn;
+
+                $channelExtra = [];
+                $appUrl = $this->bot->miniAppUrl();
+                if (str_starts_with($appUrl, 'https://')) {
+                    $channelExtra['reply_markup'] = [
+                        'inline_keyboard' => [[
+                            ['text' => 'Open App', 'url' => $appUrl],
+                        ]],
+                    ];
+                }
+
+                $channelPosted = $this->bot->sendMessage(
+                    config('services.telegram.channel_id'),
+                    $channelText,
+                    $channelExtra
+                );
+
+                if (! $channelPosted) {
+                    $channelError = 'Could not post to the channel. Make sure the bot is an admin with post permission.';
+                }
+            }
+        }
+
+        return [
+            'users_sent' => $usersSent,
+            'users_eligible' => $eligible,
+            'channel_posted' => $channelPosted,
+            'channel_error' => $channelError,
+        ];
+    }
+
+    public function notifiableAttendeesCount(): int
+    {
+        return $this->notifiableAttendeesQuery()->count();
+    }
+
+    private function notifiableAttendeesQuery()
+    {
+        return Attendee::query()
             ->whereNotNull('telegram_id')
             ->where('notifications_enabled', true)
-            ->whereNotNull('profile_completed_at')
-            ->orderBy('id')
-            ->chunkById(100, function ($attendees) use ($messageEn, $messageAm, &$sent) {
-                foreach ($attendees as $attendee) {
-                    $text = ($attendee->locale === 'am' && filled($messageAm)) ? $messageAm : $messageEn;
-                    if ($this->bot->sendMessage($attendee->telegram_id, $text)) {
-                        $sent++;
-                    }
-                }
-            });
-
-        return $sent;
+            ->whereNotNull('profile_completed_at');
     }
 
     public function sendWelcome(int|string $chatId, string $locale = 'en'): void

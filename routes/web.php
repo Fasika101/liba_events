@@ -23,6 +23,7 @@ use App\Http\Controllers\Agent\DashboardController as AgentDashboardController;
 use App\Http\Controllers\Agent\TicketController as AgentTicketController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SuperAdmin\BulkSmsController as SuperAdminBulkSmsController;
+use App\Http\Controllers\SuperAdmin\TelegramBroadcastController as SuperAdminTelegramBroadcastController;
 use App\Http\Controllers\SuperAdmin\CompanyAdminController as SuperAdminCompanyAdminController;
 use App\Http\Controllers\SuperAdmin\CompanyController as SuperAdminCompanyController;
 use App\Http\Controllers\SuperAdmin\CrmController as SuperAdminCrmController;
@@ -119,6 +120,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/bulk-sms', [SuperAdminBulkSmsController::class, 'index'])->name('bulk-sms.index');
         Route::post('/bulk-sms/send', [SuperAdminBulkSmsController::class, 'send'])->name('bulk-sms.send');
         Route::get('/bulk-sms/{bulkSmsLog}', [SuperAdminBulkSmsController::class, 'show'])->name('bulk-sms.show');
+
+        Route::get('/telegram-broadcast', [SuperAdminTelegramBroadcastController::class, 'index'])->name('telegram-broadcast.index');
+        Route::post('/telegram-broadcast', [SuperAdminTelegramBroadcastController::class, 'send'])->name('telegram-broadcast.send');
 
         Route::resource('sms-packages', SuperAdminSmsPackageController::class)->except(['show']);
 

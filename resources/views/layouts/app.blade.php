@@ -660,6 +660,7 @@
                             ['super-admin.registration-requests.index', 'fa-user-clock', 'Registrations'],
                             ['super-admin.sms-settings.edit', 'fa-sms', 'SMS settings'],
                             ['super-admin.bulk-sms.index', 'fa-bullhorn', 'Bulk SMS'],
+                            ['super-admin.telegram-broadcast.index', 'fa-paper-plane', 'Telegram Broadcast'],
                             ['super-admin.sms-packages.index', 'fa-box', 'SMS packages'],
                             ['super-admin.premium.purchase-requests', 'fa-crown', 'Premium requests'],
                             ['super-admin.accounting.index', 'fa-calculator', 'SMS Accounting'],
@@ -667,7 +668,7 @@
                         ] as [$route, $icon, $label])
                             <li class="nav-item">
                                 <a href="{{ route($route) }}"
-                                   class="nav-link {{ request()->routeIs($route) || ($route === 'super-admin.companies.index' && request()->routeIs('super-admin.companies.*')) || ($route === 'super-admin.registration-requests.index' && request()->routeIs('super-admin.registration-requests.*')) || ($route === 'super-admin.sms-settings.edit' && request()->routeIs('super-admin.sms-settings.*')) || ($route === 'super-admin.bulk-sms.index' && request()->routeIs('super-admin.bulk-sms.*')) || ($route === 'super-admin.sms-packages.index' && request()->routeIs('super-admin.sms-packages.*')) || ($route === 'super-admin.premium.purchase-requests' && request()->routeIs('super-admin.premium.*')) || ($route === 'super-admin.accounting.index' && request()->routeIs('super-admin.accounting.*')) || ($route === 'super-admin.crm.index' && request()->routeIs('super-admin.crm.*')) ? 'active' : '' }}">
+                                   class="nav-link {{ request()->routeIs($route) || ($route === 'super-admin.companies.index' && request()->routeIs('super-admin.companies.*')) || ($route === 'super-admin.registration-requests.index' && request()->routeIs('super-admin.registration-requests.*')) || ($route === 'super-admin.sms-settings.edit' && request()->routeIs('super-admin.sms-settings.*')) || ($route === 'super-admin.bulk-sms.index' && request()->routeIs('super-admin.bulk-sms.*')) || ($route === 'super-admin.telegram-broadcast.index' && request()->routeIs('super-admin.telegram-broadcast.*')) || ($route === 'super-admin.sms-packages.index' && request()->routeIs('super-admin.sms-packages.*')) || ($route === 'super-admin.premium.purchase-requests' && request()->routeIs('super-admin.premium.*')) || ($route === 'super-admin.accounting.index' && request()->routeIs('super-admin.accounting.*')) || ($route === 'super-admin.crm.index' && request()->routeIs('super-admin.crm.*')) ? 'active' : '' }}">
                                     <i class="nav-icon fas {{ $icon }}"></i>
                                     <p>{{ $label }}</p>
                                 </a>

@@ -7,19 +7,39 @@ use Illuminate\Console\Command;
 
 class BroadcastTelegramUpdate extends Command
 {
-    protected $signature = 'telegram:broadcast {message : English message} {--am= : Optional Amharic message}';
+    protected $signature = 'telegram:broadcast
+        {message : English message}
+        {--am= : Optional Amharic message}
+        {--channel : Also post to the configured Telegram channel}
+        {--channel-only : Post to the channel only (skip user DMs)}';
 
-    protected $description = 'Send an update to all registered marketplace users via the bot';
+    protected $description = 'Send an update to registered users and/or the Telegram channel';
 
     public function handle(TelegramNotifier $notifier): int
     {
-        $sent = $notifier->broadcast(
+        $channelOnly = (bool) $this->option('channel-only');
+        $toUsers = ! $channelOnly;
+        $toChannel = $channelOnly || (bool) $this->option('channel');
+
+        $result = $notifier->broadcast(
             (string) $this->argument('message'),
-            $this->option('am')
+            $this->option('am'),
+            $toUsers,
+            $toChannel,
         );
 
-        $this->info("Sent to {$sent} users.");
+        if ($toUsers) {
+            $this->info("Users: {$result['users_sent']} / {$result['users_eligible']} sent.");
+        }
 
-        return 0;
+        if ($toChannel) {
+            if ($result['channel_posted']) {
+                $this->info('Channel: posted.');
+            } else {
+                $this->error('Channel: '.($result['channel_error'] ?: 'failed'));
+            }
+        }
+
+        return ($toChannel && ! $result['channel_posted']) ? 1 : 0;
     }
 }
