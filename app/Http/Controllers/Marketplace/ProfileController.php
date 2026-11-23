@@ -46,13 +46,56 @@ class ProfileController extends Controller
 
         $request->session()->put('public_attendee_id', $attendee->id);
 
+        $needsOnboarding = ! $attendee->isOnboarded();
+
         return response()->json([
             'ok' => true,
             'attendee' => [
                 'id' => $attendee->id,
                 'name' => $attendee->displayName(),
             ],
+            'onboarding' => [
+                'required' => $needsOnboarding,
+                'needs_channel' => $attendee->needsChannelJoin(),
+                'needs_profile' => $attendee->needsProfile(),
+                'redirect' => route('public.onboarding'),
+            ],
         ]);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $attendee = $this->currentAttendee($request);
+        if (! $attendee || ! $attendee->isOnboarded()) {
+            return redirect()->route('public.onboarding');
+        }
+
+        $local = preg_replace('/\D+/', '', (string) $request->input('buyer_phone_local', ''));
+        if (str_starts_with($local, '0')) {
+            $local = substr($local, 1);
+        }
+        $local = substr($local, 0, 9);
+        if (strlen($local) === 9) {
+            $request->merge(['buyer_phone' => '+251'.$local]);
+        }
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'buyer_phone' => ['required', 'regex:/^\+251[0-9]{9}$/'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'notifications_enabled' => ['nullable', 'boolean'],
+        ], [
+            'buyer_phone.regex' => 'Phone must be 9 digits after +251.',
+        ]);
+
+        $attendee->update([
+            'name' => $data['name'],
+            'phone' => $data['buyer_phone'],
+            'email' => $data['email'] ?? null,
+            'notifications_enabled' => $request->boolean('notifications_enabled'),
+        ]);
+
+        return back()->with('status', __('public.profile_updated'));
     }
 
     public function setLocale(Request $request)

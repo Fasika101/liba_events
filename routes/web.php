@@ -5,7 +5,9 @@ use App\Http\Controllers\Admin\BankAccountController as AdminBankAccountControll
 use App\Http\Controllers\Admin\OnlineOrderController as AdminOnlineOrderController;
 use App\Http\Controllers\Marketplace\CheckoutController as MarketplaceCheckoutController;
 use App\Http\Controllers\Marketplace\DiscoverController as MarketplaceDiscoverController;
+use App\Http\Controllers\Marketplace\OnboardingController as MarketplaceOnboardingController;
 use App\Http\Controllers\Marketplace\ProfileController as MarketplaceProfileController;
+use App\Http\Controllers\Marketplace\TelegramWebhookController;
 use App\Http\Controllers\Marketplace\VerifyEtWebhookController;
 use App\Http\Controllers\Admin\AgentController;
 use App\Http\Controllers\Admin\CheckInController;
@@ -38,19 +40,30 @@ Route::get('/tickets/{ticket}/receipt/public', [PublicTicketReceiptController::c
     ->name('tickets.public-receipt');
 
 Route::post('/webhooks/verify-et', VerifyEtWebhookController::class)->name('webhooks.verify-et');
+Route::post('/webhooks/telegram', TelegramWebhookController::class)->name('webhooks.telegram');
 
 Route::middleware('public.locale')->prefix('discover')->name('public.')->group(function () {
-    Route::get('/', [MarketplaceDiscoverController::class, 'index'])->name('discover');
-    Route::get('/organizers', [MarketplaceDiscoverController::class, 'organizers'])->name('organizers');
-    Route::get('/organizers/{company}', [MarketplaceDiscoverController::class, 'organizer'])->name('organizers.show');
-    Route::get('/events/{event}', [MarketplaceDiscoverController::class, 'event'])->name('events.show');
-    Route::post('/events/{event}/checkout', [MarketplaceCheckoutController::class, 'store'])->name('events.checkout');
-    Route::post('/events/{event}/verify-payment', [MarketplaceCheckoutController::class, 'previewVerify'])->name('events.verify-payment');
+    Route::post('/telegram-auth', [MarketplaceProfileController::class, 'authTelegram'])->name('telegram-auth');
+    Route::post('/locale', [MarketplaceProfileController::class, 'setLocale'])->name('locale');
+
+    Route::get('/onboarding', [MarketplaceOnboardingController::class, 'show'])->name('onboarding');
+    Route::post('/onboarding/channel', [MarketplaceOnboardingController::class, 'checkChannel'])->name('onboarding.channel');
+    Route::post('/onboarding/register', [MarketplaceOnboardingController::class, 'register'])->name('onboarding.register');
+
+    // Deep links from SMS / Telegram should work even before onboarding is finished.
     Route::get('/orders/{publicCode}', [MarketplaceCheckoutController::class, 'show'])->name('orders.show');
     Route::get('/orders/{publicCode}/ticket', [MarketplaceProfileController::class, 'ticketLink'])->name('orders.ticket');
-    Route::get('/me', [MarketplaceProfileController::class, 'show'])->name('profile');
-    Route::post('/locale', [MarketplaceProfileController::class, 'setLocale'])->name('locale');
-    Route::post('/telegram-auth', [MarketplaceProfileController::class, 'authTelegram'])->name('telegram-auth');
+
+    Route::middleware('public.onboarded')->group(function () {
+        Route::get('/', [MarketplaceDiscoverController::class, 'index'])->name('discover');
+        Route::get('/organizers', [MarketplaceDiscoverController::class, 'organizers'])->name('organizers');
+        Route::get('/organizers/{company}', [MarketplaceDiscoverController::class, 'organizer'])->name('organizers.show');
+        Route::get('/events/{event}', [MarketplaceDiscoverController::class, 'event'])->name('events.show');
+        Route::post('/events/{event}/checkout', [MarketplaceCheckoutController::class, 'store'])->name('events.checkout');
+        Route::post('/events/{event}/verify-payment', [MarketplaceCheckoutController::class, 'previewVerify'])->name('events.verify-payment');
+        Route::get('/me', [MarketplaceProfileController::class, 'show'])->name('profile');
+        Route::post('/me', [MarketplaceProfileController::class, 'updateProfile'])->name('profile.update');
+    });
 });
 
 Route::post('/logout', function (Request $request) {

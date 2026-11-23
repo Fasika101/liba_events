@@ -17,10 +17,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'organization.registration.enabled' => \App\Http\Middleware\EnsureOrganizationRegistrationEnabled::class,
             'company.active'       => \App\Http\Middleware\EnsureCompanyNotSuspended::class,
             'public.locale'        => \App\Http\Middleware\SetPublicLocale::class,
+            'public.onboarded'     => \App\Http\Middleware\EnsureMarketplaceOnboarded::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
             'webhooks/verify-et',
+            'webhooks/telegram',
             'discover/telegram-auth',
         ]);
     })

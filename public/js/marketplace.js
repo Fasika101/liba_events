@@ -33,6 +33,19 @@
                 initData: initData,
                 locale: document.documentElement.lang === 'am' ? 'am' : 'en'
             })
+        }).then(function (response) {
+            return response.json().catch(function () { return null; });
+        }).then(function (data) {
+            if (! data || ! data.ok || ! data.onboarding || ! data.onboarding.required) {
+                return;
+            }
+            var path = window.location.pathname || '';
+            if (path.indexOf('/discover/onboarding') !== -1) {
+                return;
+            }
+            if (data.onboarding.redirect) {
+                window.location.href = data.onboarding.redirect;
+            }
         }).catch(function () {});
     }
 

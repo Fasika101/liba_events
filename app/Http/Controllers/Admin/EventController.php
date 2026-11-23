@@ -49,7 +49,11 @@ class EventController extends Controller
 
         $data['company_id'] = auth()->user()->requireCompanyId();
 
-        Event::create($data);
+        $event = Event::create($data);
+
+        if (($data['status'] ?? '') === 'active') {
+            \App\Jobs\NotifyAttendeesOfNewEvent::dispatch($event->id);
+        }
 
         return redirect()->route('admin.events.index')->with('status', 'Event created.');
     }

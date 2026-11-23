@@ -197,6 +197,12 @@ class TicketOrderService
             // Order is paid even if SMS fails.
         }
 
+        try {
+            app(TelegramNotifier::class)->notifyOrderPaid($order);
+        } catch (\Throwable) {
+            // Telegram is best-effort.
+        }
+
         return $order;
     }
 
@@ -213,7 +219,15 @@ class TicketOrderService
             'admin_note' => $note,
         ]);
 
-        return $order->fresh();
+        $order = $order->fresh(['attendee', 'event']);
+
+        try {
+            app(TelegramNotifier::class)->notifyOrderRejected($order);
+        } catch (\Throwable) {
+            // Telegram is best-effort.
+        }
+
+        return $order;
     }
 
     private function shouldAutoMarkPaid(array $result): bool
