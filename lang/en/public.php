@@ -84,6 +84,7 @@ return [
     'onboarding_notify' => 'Send me ticket updates and new events via the bot',
     'onboarding_finish' => 'Finish registration',
     'onboarding_done' => 'You’re all set. Discover events below.',
+    'sponsored' => 'Sponsored',
     'language' => 'Language',
     'back' => 'Back',
     'etb' => 'ETB',

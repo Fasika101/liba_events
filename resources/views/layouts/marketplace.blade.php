@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ asset('css/marketplace.css') }}?v=9">
+    <link rel="stylesheet" href="{{ asset('css/marketplace.css') }}?v=10">
     <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
 </head>
 <body class="mp-body">
@@ -41,6 +41,13 @@
             <div class="mp-flash">{{ session('status') }}</div>
         @endif
         @yield('content')
+
+        <footer class="mp-footer">
+            @include('public.partials.ad-slot', ['placement' => 'footer'])
+            <p class="mp-copy">
+                © {{ now()->year }} {{ config('app.name', 'Liba Events') }}
+            </p>
+        </footer>
     </main>
 
     <nav class="mp-tabbar" aria-label="Primary">

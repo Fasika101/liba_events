@@ -84,6 +84,7 @@ return [
     'onboarding_notify' => 'የትኬት ዝመናዎችን እና አዲስ ዝግጅቶችን በቦት ይላኩልኝ',
     'onboarding_finish' => 'ምዝገባ ጨርስ',
     'onboarding_done' => 'ተዘጋጅተዋል። ከታች ዝግጅቶችን ያስሱ።',
+    'sponsored' => 'ስፖንሰር',
     'language' => 'ቋንቋ',
     'back' => 'ተመለስ',
     'etb' => 'ብር',

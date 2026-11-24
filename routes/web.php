@@ -24,6 +24,7 @@ use App\Http\Controllers\Agent\TicketController as AgentTicketController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SuperAdmin\BulkSmsController as SuperAdminBulkSmsController;
 use App\Http\Controllers\SuperAdmin\TelegramBroadcastController as SuperAdminTelegramBroadcastController;
+use App\Http\Controllers\SuperAdmin\MarketplaceAdController as SuperAdminMarketplaceAdController;
 use App\Http\Controllers\SuperAdmin\CompanyAdminController as SuperAdminCompanyAdminController;
 use App\Http\Controllers\SuperAdmin\CompanyController as SuperAdminCompanyController;
 use App\Http\Controllers\SuperAdmin\CrmController as SuperAdminCrmController;
@@ -123,6 +124,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/telegram-broadcast', [SuperAdminTelegramBroadcastController::class, 'index'])->name('telegram-broadcast.index');
         Route::post('/telegram-broadcast', [SuperAdminTelegramBroadcastController::class, 'send'])->name('telegram-broadcast.send');
+
+        Route::resource('marketplace-ads', SuperAdminMarketplaceAdController::class)->except(['show']);
 
         Route::resource('sms-packages', SuperAdminSmsPackageController::class)->except(['show']);
 

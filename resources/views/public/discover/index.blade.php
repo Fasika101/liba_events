@@ -14,6 +14,8 @@
         <button type="submit">{{ __('public.discover') }}</button>
     </form>
 
+    @include('public.partials.ad-slot', ['placement' => 'discover'])
+
     <div class="mp-grid two">
         @forelse ($events as $event)
             @php

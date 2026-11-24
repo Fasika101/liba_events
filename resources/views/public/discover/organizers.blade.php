@@ -13,6 +13,8 @@
         <button type="submit">{{ __('public.organizers') }}</button>
     </form>
 
+    @include('public.partials.ad-slot', ['placement' => 'organizers'])
+
     <div class="mp-grid">
         @forelse ($organizers as $org)
             <a class="mp-card" href="{{ route('public.organizers.show', $org) }}">
