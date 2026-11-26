@@ -16,6 +16,8 @@ class TicketOrder extends Model
 
     public const STATUS_EXPIRED = 'expired';
 
+    public const STATUS_CANCELLED = 'cancelled';
+
     protected $fillable = [
         'public_code',
         'company_id',
@@ -67,6 +69,11 @@ class TicketOrder extends Model
     public function isPaid(): bool
     {
         return $this->status === self::STATUS_PAID;
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
     }
 
     public function company(): BelongsTo

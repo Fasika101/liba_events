@@ -57,6 +57,7 @@ return [
     'status_pending' => 'በመጠባበቅ',
     'status_paid' => 'ተከፍሏል',
     'status_rejected' => 'ውድቅ',
+    'status_cancelled' => 'ተሰርዟል',
     'organizers_title' => 'የዝግጅት አዘጋጆች',
     'organizers_sub' => 'በዚህ መድረክ ዝግጅት የሚያዘጋጁ ድርጅቶችን ያስሱ።',
     'see_events' => 'ዝግጅቶችን ይመልከቱ',

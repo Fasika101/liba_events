@@ -199,6 +199,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('online-orders/{onlineOrder}', [AdminOnlineOrderController::class, 'show'])->name('online-orders.show');
         Route::post('online-orders/{onlineOrder}/paid', [AdminOnlineOrderController::class, 'markPaid'])->name('online-orders.paid');
         Route::post('online-orders/{onlineOrder}/reject', [AdminOnlineOrderController::class, 'reject'])->name('online-orders.reject');
+        Route::delete('online-orders/{onlineOrder}', [AdminOnlineOrderController::class, 'destroy'])->name('online-orders.destroy');
     });
 
     Route::middleware(['role:agent', 'company.active'])->prefix('agent')->name('agent.')->group(function () {

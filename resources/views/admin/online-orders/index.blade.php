@@ -30,6 +30,7 @@
                     <option value="pending" @selected($status === 'pending')>Pending</option>
                     <option value="paid" @selected($status === 'paid')>Paid</option>
                     <option value="rejected" @selected($status === 'rejected')>Rejected</option>
+                    <option value="cancelled" @selected($status === 'cancelled')>Cancelled</option>
                 </select>
             </form>
         </div>

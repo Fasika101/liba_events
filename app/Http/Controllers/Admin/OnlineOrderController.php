@@ -73,6 +73,29 @@ class OnlineOrderController extends Controller
         return back()->with('status', 'Order rejected.');
     }
 
+    public function destroy(Request $request, TicketOrder $onlineOrder, TicketOrderService $orders)
+    {
+        $this->authorizeOrder($onlineOrder);
+
+        if (! auth()->user()->isAdmin()) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'admin_note' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        try {
+            $orders->cancelPurchase($onlineOrder, auth()->user(), $data['admin_note'] ?? null);
+        } catch (RuntimeException $e) {
+            return back()->withErrors(['status' => $e->getMessage()]);
+        }
+
+        return redirect()
+            ->route('admin.online-orders.index')
+            ->with('status', 'Purchase deleted. Ticket removed (revenue & capacity restored). Customer contact kept.');
+    }
+
     private function authorizeOrder(TicketOrder $order): void
     {
         if ((int) $order->company_id !== auth()->user()->requireCompanyId()) {

@@ -230,6 +230,50 @@ class TicketOrderService
         return $order;
     }
 
+    /**
+     * Remove an online purchase ticket so capacity and revenue return,
+     * while keeping the customer (attendee) and order buyer fields for records.
+     */
+    public function cancelPurchase(TicketOrder $order, User $reviewer, ?string $note = null): TicketOrder
+    {
+        if ($order->isCancelled()) {
+            return $order->load(['event', 'attendee']);
+        }
+
+        if (! in_array($order->status, [TicketOrder::STATUS_PAID, TicketOrder::STATUS_PENDING, TicketOrder::STATUS_REJECTED], true)) {
+            throw new RuntimeException('This order cannot be deleted.');
+        }
+
+        return DB::transaction(function () use ($order, $reviewer, $note) {
+            $order = TicketOrder::query()->whereKey($order->id)->lockForUpdate()->firstOrFail();
+
+            if ($order->isCancelled()) {
+                return $order;
+            }
+
+            $ticketId = $order->ticket_id;
+            $ticket = $ticketId
+                ? Ticket::query()->whereKey($ticketId)->lockForUpdate()->first()
+                : null;
+
+            // Detach then delete the issued ticket so event capacity and revenue update.
+            $order->update([
+                'ticket_id' => null,
+                'status' => TicketOrder::STATUS_CANCELLED,
+                'reviewed_by' => $reviewer->id,
+                'reviewed_at' => now(),
+                'admin_note' => $note ?: ($order->admin_note ?: 'Online purchase deleted by organization admin.'),
+            ]);
+
+            if ($ticket) {
+                // Keep attendee row; only remove this ticket sale.
+                $ticket->delete();
+            }
+
+            return $order->fresh(['event', 'attendee']);
+        });
+    }
+
     private function shouldAutoMarkPaid(array $result): bool
     {
         if (! ($result['verified'] ?? false)) {

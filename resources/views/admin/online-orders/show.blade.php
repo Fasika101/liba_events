@@ -87,6 +87,31 @@
                     </div>
                 </div>
             @endif
+
+            @unless($order->isCancelled())
+                <div class="card card-outline card-danger mt-3">
+                    <div class="card-header"><h3 class="card-title mb-0">Delete purchase</h3></div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-3">
+                            Removes this ticket sale so <strong>revenue and event capacity</strong> are restored.
+                            The customer’s name and phone stay in the database.
+                        </p>
+                        <form method="POST"
+                              action="{{ route('admin.online-orders.destroy', $order) }}"
+                              onsubmit="return confirm('Delete this online purchase? The ticket will be removed and capacity restored. Customer contact will be kept.');">
+                            @csrf
+                            @method('DELETE')
+                            <div class="form-group">
+                                <label>Note (optional)</label>
+                                <textarea name="admin_note" class="form-control" rows="2" placeholder="Reason for deleting this purchase"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-danger btn-block">
+                                <i class="fas fa-trash-alt mr-1"></i> Delete purchase
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @endunless
         </div>
     </div>
 </x-app-layout>

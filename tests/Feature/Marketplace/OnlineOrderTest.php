@@ -174,6 +174,45 @@ class OnlineOrderTest extends TestCase
         $this->assertStringStartsWith('SUN-', $ticket->ticket_code); // "Sunday Gathering"
     }
 
+    public function test_admin_can_delete_paid_online_purchase_and_keep_customer(): void
+    {
+        ['event' => $event, 'admin' => $admin] = $this->premiumOrgWithEvent();
+        $event->update(['capacity' => 2]);
+
+        $this->asTelegramUser()
+            ->post(route('public.events.checkout', $event), [
+                'buyer_name' => 'Abebe Kebede',
+                'buyer_phone' => '+251911234567',
+                'yeneshaa_abat' => '1',
+                'bank_code' => 'cbe',
+                'transaction_reference' => 'FTDEL001',
+            ])->assertRedirect();
+
+        $order = TicketOrder::query()->first();
+        $this->actingAs($admin)->post(route('admin.online-orders.paid', $order))->assertRedirect();
+        $order->refresh();
+        $ticketId = $order->ticket_id;
+        $attendeeId = $order->attendee_id;
+
+        $this->assertSame(1, $event->fresh()->tickets()->count());
+
+        $this->actingAs($admin)
+            ->delete(route('admin.online-orders.destroy', $order), [
+                'admin_note' => 'Customer requested refund',
+            ])
+            ->assertRedirect(route('admin.online-orders.index'));
+
+        $order->refresh();
+        $this->assertSame(TicketOrder::STATUS_CANCELLED, $order->status);
+        $this->assertNull($order->ticket_id);
+        $this->assertSame('Abebe Kebede', $order->buyer_name);
+        $this->assertSame('+251911234567', $order->buyer_phone);
+        $this->assertDatabaseMissing('tickets', ['id' => $ticketId]);
+        $this->assertDatabaseHas('attendees', ['id' => $attendeeId, 'phone' => '+251911234567']);
+        $this->assertSame(0, $event->fresh()->tickets()->count());
+        $this->assertSame(0.0, (float) $event->fresh()->tickets()->sum('price_paid'));
+    }
+
     public function test_service_rejects_non_premium_company(): void
     {
         $company = Company::factory()->create(['plan' => Company::PLAN_STANDARD]);

@@ -57,6 +57,7 @@ return [
     'status_pending' => 'Pending',
     'status_paid' => 'Paid',
     'status_rejected' => 'Rejected',
+    'status_cancelled' => 'Cancelled',
     'organizers_title' => 'Event organizers',
     'organizers_sub' => 'Explore organizations hosting gatherings on this platform.',
     'see_events' => 'See events',
