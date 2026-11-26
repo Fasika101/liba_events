@@ -13,19 +13,27 @@
         <button type="submit">{{ __('public.organizers') }}</button>
     </form>
 
-    @include('public.partials.ad-slot', ['placement' => 'organizers'])
-
     <div class="mp-grid">
         @forelse ($organizers as $org)
-            <a class="mp-card" href="{{ route('public.organizers.show', $org) }}">
-                <div class="mp-card-body">
-                    <div class="mp-kicker">{{ __('public.organized_by') }}</div>
-                    <h2>{{ $org->name }}</h2>
-                    <p class="mp-meta">
-                        {{ $org->active_events_count }} {{ __('public.discover') }}
-                        @if($org->address) · {{ $org->address }} @endif
-                    </p>
-                    <span class="mp-btn mp-btn-secondary" style="min-height:40px;padding:8px 14px;display:inline-flex;">{{ __('public.see_events') }}</span>
+            @php $logo = $org->logoUrl(); @endphp
+            <a class="mp-card mp-org-card" href="{{ route('public.organizers.show', $org) }}">
+                <div class="mp-card-body mp-org-body">
+                    <div class="mp-org-logo" aria-hidden="true">
+                        @if($logo)
+                            <img src="{{ $logo }}" alt="">
+                        @else
+                            <span>{{ $org->initials() }}</span>
+                        @endif
+                    </div>
+                    <div class="mp-org-copy">
+                        <div class="mp-kicker">{{ __('public.organized_by') }}</div>
+                        <h2>{{ $org->name }}</h2>
+                        <p class="mp-meta">
+                            {{ $org->active_events_count }} {{ __('public.discover') }}
+                            @if($org->address) · {{ $org->address }} @endif
+                        </p>
+                        <span class="mp-btn mp-btn-secondary" style="min-height:40px;padding:8px 14px;display:inline-flex;">{{ __('public.see_events') }}</span>
+                    </div>
                 </div>
             </a>
         @empty

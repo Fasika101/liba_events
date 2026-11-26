@@ -5,12 +5,22 @@
 @section('content')
     <a class="mp-back" href="{{ route('public.organizers') }}">← {{ __('public.back') }}</a>
 
-    <section class="mp-hero">
-        <p class="mp-kicker">{{ __('public.organized_by') }}</p>
-        <h1>{{ $company->name }}</h1>
-        @if($company->address)
-            <p>{{ $company->address }}</p>
-        @endif
+    <section class="mp-hero mp-org-hero">
+        <div class="mp-org-logo mp-org-logo-lg" aria-hidden="true">
+            @php $company->loadMissing('primaryAdmin'); @endphp
+            @if($company->logoUrl())
+                <img src="{{ $company->logoUrl() }}" alt="">
+            @else
+                <span>{{ $company->initials() }}</span>
+            @endif
+        </div>
+        <div>
+            <p class="mp-kicker">{{ __('public.organized_by') }}</p>
+            <h1>{{ $company->name }}</h1>
+            @if($company->address)
+                <p>{{ $company->address }}</p>
+            @endif
+        </div>
     </section>
 
     <div class="mp-grid">

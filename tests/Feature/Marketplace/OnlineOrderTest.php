@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Marketplace;
 
+use App\Models\Attendee;
 use App\Models\Company;
 use App\Models\CompanyBankAccount;
 use App\Models\Event;
@@ -14,6 +15,20 @@ use Tests\TestCase;
 class OnlineOrderTest extends TestCase
 {
     use RefreshDatabase;
+
+    private function asTelegramUser()
+    {
+        $attendee = Attendee::create([
+            'telegram_id' => (string) random_int(100000, 999999999),
+            'name' => 'Telegram User',
+            'locale' => 'en',
+            'notifications_enabled' => true,
+            'channel_joined_at' => now(),
+            'profile_completed_at' => now(),
+        ]);
+
+        return $this->withSession(['public_attendee_id' => $attendee->id]);
+    }
 
     private function premiumOrgWithEvent(): array
     {
@@ -50,11 +65,18 @@ class OnlineOrderTest extends TestCase
         return compact('company', 'event', 'admin');
     }
 
+    public function test_guest_is_redirected_to_telegram_gate(): void
+    {
+        $this->get(route('public.discover'))
+            ->assertRedirect(route('public.gate'));
+    }
+
     public function test_premium_events_appear_on_discover(): void
     {
         ['event' => $event] = $this->premiumOrgWithEvent();
 
-        $this->get(route('public.discover'))
+        $this->asTelegramUser()
+            ->get(route('public.discover'))
             ->assertOk()
             ->assertSee($event->title);
     }
@@ -68,11 +90,13 @@ class OnlineOrderTest extends TestCase
             'title' => 'Expired Gathering',
         ]);
 
-        $this->get(route('public.discover'))
+        $this->asTelegramUser()
+            ->get(route('public.discover'))
             ->assertOk()
             ->assertDontSee('Expired Gathering');
 
-        $html = $this->get(route('public.organizers.show', $company))
+        $html = $this->asTelegramUser()
+            ->get(route('public.organizers.show', $company))
             ->assertOk()
             ->assertSee('Expired Gathering')
             ->assertSee(__('public.expired'))
@@ -84,13 +108,14 @@ class OnlineOrderTest extends TestCase
             $html
         );
 
-        $this->post(route('public.events.checkout', $event), [
-            'buyer_name' => 'Abebe Kebede',
-            'buyer_phone' => '+251911234567',
-            'yeneshaa_abat' => '1',
-            'bank_code' => 'cbe',
-            'transaction_reference' => 'FT999',
-        ])->assertRedirect()
+        $this->asTelegramUser()
+            ->post(route('public.events.checkout', $event), [
+                'buyer_name' => 'Abebe Kebede',
+                'buyer_phone' => '+251911234567',
+                'yeneshaa_abat' => '1',
+                'bank_code' => 'cbe',
+                'transaction_reference' => 'FT999',
+            ])->assertRedirect()
             ->assertSessionHasErrors('checkout');
     }
 
@@ -106,7 +131,8 @@ class OnlineOrderTest extends TestCase
             'start_at' => now()->addDays(2),
         ]);
 
-        $this->get(route('public.discover'))
+        $this->asTelegramUser()
+            ->get(route('public.discover'))
             ->assertOk()
             ->assertDontSee('Hidden Standard Event');
     }
@@ -115,14 +141,15 @@ class OnlineOrderTest extends TestCase
     {
         ['event' => $event, 'admin' => $admin] = $this->premiumOrgWithEvent();
 
-        $this->post(route('public.events.checkout', $event), [
-            'buyer_name' => 'Abebe Kebede',
-            'buyer_phone' => '+251911234567',
-            'buyer_email' => null,
-            'yeneshaa_abat' => '1',
-            'bank_code' => 'cbe',
-            'transaction_reference' => 'FT123456789',
-        ])->assertRedirect();
+        $this->asTelegramUser()
+            ->post(route('public.events.checkout', $event), [
+                'buyer_name' => 'Abebe Kebede',
+                'buyer_phone' => '+251911234567',
+                'buyer_email' => null,
+                'yeneshaa_abat' => '1',
+                'bank_code' => 'cbe',
+                'transaction_reference' => 'FT123456789',
+            ])->assertRedirect();
 
         $order = TicketOrder::query()->first();
         $this->assertNotNull($order);

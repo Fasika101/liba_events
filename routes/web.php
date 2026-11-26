@@ -48,6 +48,7 @@ Route::middleware('public.locale')->prefix('discover')->name('public.')->group(f
     Route::post('/telegram-auth', [MarketplaceProfileController::class, 'authTelegram'])->name('telegram-auth');
     Route::post('/locale', [MarketplaceProfileController::class, 'setLocale'])->name('locale');
 
+    Route::get('/gate', [MarketplaceOnboardingController::class, 'gate'])->name('gate');
     Route::get('/onboarding', [MarketplaceOnboardingController::class, 'show'])->name('onboarding');
     Route::post('/onboarding/channel', [MarketplaceOnboardingController::class, 'checkChannel'])->name('onboarding.channel');
     Route::post('/onboarding/register', [MarketplaceOnboardingController::class, 'register'])->name('onboarding.register');
@@ -56,7 +57,7 @@ Route::middleware('public.locale')->prefix('discover')->name('public.')->group(f
     Route::get('/orders/{publicCode}', [MarketplaceCheckoutController::class, 'show'])->name('orders.show');
     Route::get('/orders/{publicCode}/ticket', [MarketplaceProfileController::class, 'ticketLink'])->name('orders.ticket');
 
-    Route::middleware('public.onboarded')->group(function () {
+    Route::middleware('public.telegram')->group(function () {
         Route::get('/', [MarketplaceDiscoverController::class, 'index'])->name('discover');
         Route::get('/organizers', [MarketplaceDiscoverController::class, 'organizers'])->name('organizers');
         Route::get('/organizers/{company}', [MarketplaceDiscoverController::class, 'organizer'])->name('organizers.show');

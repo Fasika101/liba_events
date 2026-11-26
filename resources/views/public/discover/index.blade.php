@@ -14,14 +14,75 @@
         <button type="submit">{{ __('public.discover') }}</button>
     </form>
 
-    @include('public.partials.ad-slot', ['placement' => 'discover'])
+    @if($carouselAds->isNotEmpty())
+        <section class="mp-ad-carousel mp-ad-carousel-compact" data-ad-carousel aria-label="{{ __('public.sponsored') }}">
+            <div class="mp-ad-carousel-track">
+                @foreach($carouselAds as $index => $ad)
+                    @php
+                        $tag = filled($ad->link_url) ? 'a' : 'div';
+                        $href = filled($ad->link_url) ? ' href="'.e($ad->link_url).'" target="_blank" rel="noopener sponsored"' : '';
+                        $image = $ad->imageUrl();
+                    @endphp
+                    <{{ $tag }} class="mp-ad-slide {{ $index === 0 ? 'is-active' : '' }}"{!! $href !!} data-ad-slide>
+                        @if($image)
+                            <span class="mp-ad-thumb">
+                                <img src="{{ $image }}" alt="" decoding="async">
+                            </span>
+                        @endif
+                        <span class="mp-ad-slide-copy">
+                            <span class="mp-ad-label">{{ __('public.sponsored') }}</span>
+                            <span class="mp-ad-slide-title">{{ $ad->title }}</span>
+                            @if($ad->body)
+                                <span class="mp-ad-slide-text">{{ $ad->body }}</span>
+                            @endif
+                        </span>
+                    </{{ $tag }}>
+                @endforeach
+            </div>
+            @if($carouselAds->count() > 1)
+                <div class="mp-ad-carousel-dots" data-ad-dots>
+                    @foreach($carouselAds as $index => $ad)
+                        <button type="button" class="{{ $index === 0 ? 'is-active' : '' }}" data-ad-dot="{{ $index }}" aria-label="Ad {{ $index + 1 }}"></button>
+                    @endforeach
+                </div>
+            @endif
+        </section>
+    @endif
 
     <div class="mp-grid two">
-        @forelse ($events as $event)
+        @forelse ($events as $index => $event)
             @php
                 $photo = $event->photo_path ? asset('storage/'.$event->photo_path) : null;
                 $price = (float) $event->price;
+                $inlineEvery = 4;
+                $showInline = $inlineAds->isNotEmpty()
+                    && $index > 0
+                    && ($index % $inlineEvery === 0);
+                $inlineAd = $showInline ? $inlineAds[(($index / $inlineEvery) - 1) % $inlineAds->count()] : null;
             @endphp
+
+            @if($inlineAd)
+                @php
+                    $tag = filled($inlineAd->link_url) ? 'a' : 'article';
+                    $href = filled($inlineAd->link_url) ? ' href="'.e($inlineAd->link_url).'" target="_blank" rel="noopener sponsored"' : '';
+                    $image = $inlineAd->imageUrl();
+                @endphp
+                <{{ $tag }} class="mp-inline-ad"{!! $href !!}>
+                    @if($image)
+                        <span class="mp-ad-thumb">
+                            <img src="{{ $image }}" alt="" decoding="async">
+                        </span>
+                    @endif
+                    <span class="mp-ad-slide-copy">
+                        <span class="mp-ad-label">{{ __('public.sponsored') }}</span>
+                        <span class="mp-ad-slide-title">{{ $inlineAd->title }}</span>
+                        @if($inlineAd->body)
+                            <span class="mp-ad-slide-text">{{ $inlineAd->body }}</span>
+                        @endif
+                    </span>
+                </{{ $tag }}>
+            @endif
+
             <a class="mp-card" href="{{ route('public.events.show', $event) }}">
                 <div class="mp-card-media" @if($photo) style="background-image:url('{{ $photo }}')" @endif></div>
                 <div class="mp-card-body">

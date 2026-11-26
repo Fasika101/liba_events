@@ -48,6 +48,7 @@
                 <label for="starts_at">Starts at (optional)</label>
                 <input type="datetime-local" name="starts_at" id="starts_at" class="form-control"
                        value="{{ old('starts_at', optional($ad->starts_at)->format('Y-m-d\TH:i')) }}">
+                <small class="form-text text-muted">Leave blank to show immediately. Ad stays live until Ends at.</small>
             </div>
         </div>
         <div class="col-md-6">
@@ -55,6 +56,7 @@
                 <label for="ends_at">Ends at (optional)</label>
                 <input type="datetime-local" name="ends_at" id="ends_at" class="form-control"
                        value="{{ old('ends_at', optional($ad->ends_at)->format('Y-m-d\TH:i')) }}">
+                <small class="form-text text-muted">Leave blank for no expiry. Until then it keeps rotating on Discover.</small>
             </div>
         </div>
     </div>

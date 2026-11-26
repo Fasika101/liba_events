@@ -12,7 +12,9 @@
             @endphp
             <{{ $tag }} class="mp-ad"{!! $href !!}>
                 @if($image)
-                    <span class="mp-ad-media" style="background-image:url('{{ $image }}')"></span>
+                    <span class="mp-ad-media">
+                        <img src="{{ $image }}" alt="" loading="lazy" decoding="async">
+                    </span>
                 @endif
                 <span class="mp-ad-body">
                     <span class="mp-ad-label">{{ __('public.sponsored') }}</span>

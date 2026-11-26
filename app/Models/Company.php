@@ -33,6 +33,7 @@ class Company extends Model
 
     protected $fillable = [
         'name',
+        'logo_path',
         'address',
         'phone',
         'is_suspended',
@@ -46,6 +47,29 @@ class Company extends Model
         'sms_api_key',
         'sms_sender_id',
     ];
+
+    public function logoUrl(): ?string
+    {
+        // Prefer the organization admin's profile photo (already set in their account).
+        $adminAvatar = $this->primaryAdmin?->avatarUrl();
+        if ($adminAvatar) {
+            return $adminAvatar;
+        }
+
+        if (! filled($this->logo_path)) {
+            return null;
+        }
+
+        return asset('storage/'.$this->logo_path);
+    }
+
+    public function initials(): string
+    {
+        $parts = preg_split('/\s+/', trim((string) $this->name)) ?: [];
+        $letters = collect($parts)->filter()->take(2)->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)));
+
+        return $letters->implode('') ?: 'OR';
+    }
 
     protected function casts(): array
     {

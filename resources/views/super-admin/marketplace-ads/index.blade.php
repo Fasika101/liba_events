@@ -54,15 +54,30 @@
                             <td>{{ $ad->placementLabel() }}</td>
                             <td class="small text-muted">
                                 @if($ad->starts_at || $ad->ends_at)
-                                    {{ $ad->starts_at?->format('M j') ?? '—' }} → {{ $ad->ends_at?->format('M j') ?? '—' }}
+                                    {{ $ad->starts_at?->format('M j, Y g:i A') ?? '—' }}
+                                    →
+                                    {{ $ad->ends_at?->format('M j, Y g:i A') ?? '—' }}
                                 @else
                                     Always
                                 @endif
                             </td>
                             <td>
-                                <span class="badge badge-{{ $ad->is_active ? 'success' : 'secondary' }}">
-                                    {{ $ad->is_active ? 'Active' : 'Off' }}
-                                </span>
+                                @php
+                                    $live = $ad->is_active
+                                        && (! $ad->starts_at || $ad->starts_at->lte(now()))
+                                        && (! $ad->ends_at || $ad->ends_at->gte(now()));
+                                    $scheduled = $ad->is_active && $ad->starts_at && $ad->starts_at->gt(now());
+                                    $expired = $ad->is_active && $ad->ends_at && $ad->ends_at->lt(now());
+                                @endphp
+                                @if($live)
+                                    <span class="badge badge-success">Live on site</span>
+                                @elseif($scheduled)
+                                    <span class="badge badge-info">Scheduled</span>
+                                @elseif($expired)
+                                    <span class="badge badge-warning">Expired</span>
+                                @else
+                                    <span class="badge badge-secondary">Off</span>
+                                @endif
                             </td>
                             <td class="text-right text-nowrap">
                                 <a href="{{ route('super-admin.marketplace-ads.edit', $ad) }}" class="btn btn-sm btn-outline-primary">

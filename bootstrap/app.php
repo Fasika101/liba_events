@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'company.active'       => \App\Http\Middleware\EnsureCompanyNotSuspended::class,
             'public.locale'        => \App\Http\Middleware\SetPublicLocale::class,
             'public.onboarded'     => \App\Http\Middleware\EnsureMarketplaceOnboarded::class,
+            'public.telegram'      => \App\Http\Middleware\EnsureTelegramMarketplaceUser::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [

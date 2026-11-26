@@ -30,9 +30,9 @@
         <div class="col-lg-8 col-12">
             <div class="card card-outline card-primary">
                 <div class="card-header">
-                    <h3 class="card-title">Organization name</h3>
+                    <h3 class="card-title">Organization profile</h3>
                 </div>
-                <form method="POST" action="{{ route('super-admin.companies.update', $company) }}">
+                <form method="POST" action="{{ route('super-admin.companies.update', $company) }}" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <div class="card-body">
@@ -41,6 +41,22 @@
                             <input type="text" name="name" id="name" value="{{ old('name', $company->name) }}"
                                    class="form-control @error('name') is-invalid @enderror" required maxlength="255">
                             @error('name')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                        </div>
+
+                        <div class="form-group mb-0">
+                            <label for="logo">Logo</label>
+                            <input type="file" name="logo" id="logo" accept="image/*" class="form-control-file @error('logo') is-invalid @enderror">
+                            <small class="form-text text-muted">Shown on the public Organizers page. Square image works best. Max 2MB.</small>
+                            @error('logo')<span class="invalid-feedback d-block">{{ $message }}</span>@enderror
+                            @if($company->logoUrl())
+                                <div class="mt-3 d-flex align-items-center">
+                                    <img src="{{ $company->logoUrl() }}" alt="" class="rounded border mr-3" style="width:64px;height:64px;object-fit:cover;">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="remove_logo" name="remove_logo" value="1">
+                                        <label class="custom-control-label" for="remove_logo">Remove current logo</label>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                     <div class="card-footer">

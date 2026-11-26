@@ -10,12 +10,28 @@ use Illuminate\Validation\ValidationException;
 
 class OnboardingController extends Controller
 {
+    public function gate(Request $request)
+    {
+        $attendee = $this->currentAttendee($request);
+        if ($attendee && filled($attendee->telegram_id)) {
+            if ($attendee->isOnboarded()) {
+                return redirect()->route('public.discover');
+            }
+
+            return redirect()->route('public.onboarding');
+        }
+
+        return view('public.onboarding.gate', [
+            'botUsername' => config('services.telegram.bot_username'),
+        ]);
+    }
+
     public function show(Request $request, TelegramBotClient $bot)
     {
         $attendee = $this->currentAttendee($request);
 
-        if (! $attendee) {
-            return view('public.onboarding.need-telegram');
+        if (! $attendee || ! filled($attendee->telegram_id)) {
+            return redirect()->route('public.gate');
         }
 
         if ($attendee->isOnboarded()) {

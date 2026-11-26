@@ -25,7 +25,7 @@ class MarketplaceAdController extends Controller
     {
         return view('super-admin.marketplace-ads.create', [
             'ad' => new MarketplaceAd([
-                'placement' => MarketplaceAd::PLACEMENT_DISCOVER,
+                'placement' => MarketplaceAd::PLACEMENT_CAROUSEL,
                 'is_active' => true,
                 'sort_order' => 0,
             ]),
@@ -111,8 +111,15 @@ class MarketplaceAdController extends Controller
         $data['sort_order'] = (int) ($data['sort_order'] ?? 0);
         $data['body'] = $data['body'] ?? null;
         $data['link_url'] = $data['link_url'] ?? null;
-        $data['starts_at'] = $data['starts_at'] ?? null;
-        $data['ends_at'] = $data['ends_at'] ?? null;
+
+        // Empty schedule = always on until manually turned off / deleted.
+        $data['starts_at'] = filled($data['starts_at'] ?? null) ? $data['starts_at'] : null;
+        if (filled($data['ends_at'] ?? null)) {
+            // Keep the chosen end moment inclusive for the rest of that minute.
+            $data['ends_at'] = \Carbon\Carbon::parse($data['ends_at'])->endOfMinute();
+        } else {
+            $data['ends_at'] = null;
+        }
 
         unset($data['image'], $data['remove_image']);
 

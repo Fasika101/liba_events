@@ -82,7 +82,10 @@ class OnboardingTest extends TestCase
 
     public function test_webhook_start_sends_welcome(): void
     {
-        config(['services.telegram.bot_token' => 'test-token']);
+        config([
+            'services.telegram.bot_token' => 'test-token',
+            'services.telegram.webhook_secret' => null,
+        ]);
 
         Http::fake([
             'api.telegram.org/*' => Http::response(['ok' => true, 'result' => []]),

@@ -12,6 +12,7 @@ use App\Services\SmsAccountingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class CompanyController extends Controller
 {
@@ -138,8 +139,23 @@ class CompanyController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'logo' => ['nullable', 'image', 'max:2048'],
+            'remove_logo' => ['sometimes', 'boolean'],
         ]);
 
+        if ($request->boolean('remove_logo') && $company->logo_path) {
+            Storage::disk('public')->delete($company->logo_path);
+            $data['logo_path'] = null;
+        }
+
+        if ($request->hasFile('logo')) {
+            if ($company->logo_path) {
+                Storage::disk('public')->delete($company->logo_path);
+            }
+            $data['logo_path'] = $request->file('logo')->store('company-logos', 'public');
+        }
+
+        unset($data['logo'], $data['remove_logo']);
         $company->update($data);
 
         return redirect()->route('super-admin.companies.show', $company)

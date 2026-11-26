@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Marketplace;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Event;
+use App\Models\MarketplaceAd;
 use Illuminate\Http\Request;
 
 class DiscoverController extends Controller
@@ -29,7 +30,10 @@ class DiscoverController extends Controller
             ->simplePaginate(12)
             ->withQueryString();
 
-        return view('public.discover.index', compact('events', 'q'));
+        $carouselAds = MarketplaceAd::forPlacement(MarketplaceAd::PLACEMENT_CAROUSEL);
+        $inlineAds = MarketplaceAd::forPlacement(MarketplaceAd::PLACEMENT_INLINE);
+
+        return view('public.discover.index', compact('events', 'q', 'carouselAds', 'inlineAds'));
     }
 
     public function organizers(Request $request)
@@ -39,6 +43,7 @@ class DiscoverController extends Controller
         // Premium (subscribed) organizations only — show even if they have no upcoming events yet.
         $organizers = Company::query()
             ->publicMarketplace()
+            ->with('primaryAdmin')
             ->withCount([
                 'events as active_events_count' => fn ($query) => $query->where('status', 'active'),
             ])
