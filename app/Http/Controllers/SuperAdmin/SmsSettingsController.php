@@ -21,6 +21,7 @@ class SmsSettingsController extends Controller
                 'otp_length' => SmsConfig::otpLength(),
                 'otp_expiry_minutes' => SmsConfig::otpExpiryMinutes(),
                 'has_api_key' => filled(SmsConfig::apiKey()),
+                'api_key_masked' => Setting::masked('sms.api_key'),
                 'sender_id_price_etb' => SmsConfig::senderIdPriceEtb(),
             ],
         ]);
@@ -51,12 +52,15 @@ class SmsSettingsController extends Controller
         Setting::set('sms.otp_expiry_minutes', (string) $data['otp_expiry_minutes']);
         Setting::set('sms.sender_id_price_etb', (string) ($data['sender_id_price_etb'] ?? ''));
 
+        // Never wipe an existing key when the password field is left blank.
         if (filled($data['api_key'])) {
             Setting::set('sms.api_key', $data['api_key']);
         }
 
         return redirect()->route('super-admin.sms-settings.edit')
-            ->with('status', 'SMS settings saved successfully.');
+            ->with('status', filled(SmsConfig::apiKey())
+                ? 'SMS settings saved. Your API key stays on file until you replace it.'
+                : 'SMS settings saved successfully.');
     }
 
     public function test(Request $request, SmsVerificationService $sms)

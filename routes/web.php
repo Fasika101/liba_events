@@ -64,6 +64,7 @@ Route::middleware('public.locale')->prefix('discover')->name('public.')->group(f
         Route::get('/events/{event}', [MarketplaceDiscoverController::class, 'event'])->name('events.show');
         Route::post('/events/{event}/checkout', [MarketplaceCheckoutController::class, 'store'])->name('events.checkout');
         Route::post('/events/{event}/verify-payment', [MarketplaceCheckoutController::class, 'previewVerify'])->name('events.verify-payment');
+        Route::get('/tickets', [MarketplaceProfileController::class, 'tickets'])->name('tickets');
         Route::get('/me', [MarketplaceProfileController::class, 'show'])->name('profile');
         Route::post('/me', [MarketplaceProfileController::class, 'updateProfile'])->name('profile.update');
     });

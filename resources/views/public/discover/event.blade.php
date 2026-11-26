@@ -164,8 +164,14 @@
                         </div>
                         <div class="field field-span">
                             <label for="transaction_reference">{{ __('public.transaction_id') }}</label>
-                            <textarea id="transaction_reference" name="transaction_reference" rows="3" required
-                                      placeholder="Paste receipt ID, transaction number, or the full bank SMS">{{ old('transaction_reference') }}</textarea>
+                            <input id="transaction_reference"
+                                   name="transaction_reference"
+                                   type="text"
+                                   inputmode="text"
+                                   autocomplete="off"
+                                   required
+                                   placeholder="{{ __('public.transaction_id') }}"
+                                   value="{{ old('transaction_reference') }}">
                             <div id="verify-status" class="mp-verify-status" aria-live="polite"></div>
                             <p class="mp-lux-hint" style="margin-top:6px;">
                                 We check the receipt amount against {{ number_format((float) $event->price, 2) }} {{ $event->currency }} as you type.

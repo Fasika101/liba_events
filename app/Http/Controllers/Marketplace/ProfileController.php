@@ -15,6 +15,13 @@ class ProfileController extends Controller
     {
         $attendee = $this->currentAttendee($request);
 
+        return view('public.profile.account', compact('attendee'));
+    }
+
+    public function tickets(Request $request)
+    {
+        $attendee = $this->currentAttendee($request);
+
         $orders = collect();
         if ($attendee) {
             $orders = TicketOrder::query()
@@ -24,7 +31,7 @@ class ProfileController extends Controller
                 ->get();
         }
 
-        return view('public.profile.show', compact('attendee', 'orders'));
+        return view('public.profile.tickets', compact('attendee', 'orders'));
     }
 
     public function authTelegram(Request $request, TelegramWebAppAuth $telegram)

@@ -74,13 +74,21 @@
 
                         <div class="form-group">
                             <label for="api_key">API key</label>
+                            @if($settings['has_api_key'])
+                                <div class="alert alert-success py-2 px-3 mb-2">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    Key on file:
+                                    <code>{{ $settings['api_key_masked'] }}</code>
+                                    — leave the box empty to keep it forever.
+                                </div>
+                            @endif
                             <input type="password" name="api_key" id="api_key"
                                    class="form-control @error('api_key') is-invalid @enderror"
-                                   placeholder="{{ $settings['has_api_key'] ? '•••••••••••••••• (leave blank to keep current key)' : 'Paste your SMSEthiopia API key' }}"
-                                   autocomplete="off">
+                                   placeholder="{{ $settings['has_api_key'] ? 'Leave blank to keep current key' : 'Paste your SMSEthiopia API key' }}"
+                                   autocomplete="new-password">
                             <small class="form-text text-muted">
                                 From SMSEthiopia dashboard: <strong>Console → API Keys</strong>.
-                                Sent in the <code>KEY</code> request header per their API.
+                                Saved once in the database — you do not need to paste it again after deploy.
                             </small>
                             @error('api_key')<span class="invalid-feedback">{{ $message }}</span>@enderror
                         </div>

@@ -45,6 +45,28 @@ class SmsSettingsTest extends TestCase
         $this->assertSame('LIBAEVENTS', Setting::get('sms.sender_id'));
     }
 
+    public function test_blank_api_key_keeps_existing_key(): void
+    {
+        Setting::set('sms.api_key', 'keep-me-forever');
+        Setting::set('sms.driver', 'smsethiopia');
+        Setting::set('sms.message_template', 'Code: {code}');
+
+        $superAdmin = User::factory()->superAdmin()->create();
+
+        $this->actingAs($superAdmin)
+            ->put(route('super-admin.sms-settings.update'), [
+                'driver' => 'smsethiopia',
+                'api_key' => '',
+                'sender_id' => 'LIBAEVENTS',
+                'message_template' => 'Code: {code}',
+                'otp_length' => 6,
+                'otp_expiry_minutes' => 10,
+            ])
+            ->assertRedirect(route('super-admin.sms-settings.edit'));
+
+        $this->assertSame('keep-me-forever', Setting::get('sms.api_key'));
+    }
+
     public function test_smsethiopia_client_sends_sms_with_correct_payload(): void
     {
         Http::fake([

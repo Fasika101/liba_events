@@ -3,7 +3,7 @@
 @section('title', $order->public_code)
 
 @section('content')
-    <a class="mp-back" href="{{ route('public.profile') }}">← {{ __('public.my_tickets') }}</a>
+    <a class="mp-back" href="{{ route('public.tickets') }}">← {{ __('public.my_tickets') }}</a>
 
     <section class="mp-card">
         <div class="mp-card-body">

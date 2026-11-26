@@ -1,0 +1,34 @@
+@extends('layouts.marketplace')
+
+@section('title', __('public.my_tickets'))
+
+@section('content')
+    <section class="mp-hero">
+        <h1>{{ __('public.my_tickets') }}</h1>
+        @if($attendee)
+            <p>{{ $attendee->displayName() }}</p>
+        @endif
+    </section>
+
+    <div class="mp-grid">
+        @forelse ($orders as $order)
+            <a class="mp-card" href="{{ route('public.orders.show', $order->public_code) }}">
+                <div class="mp-card-body">
+                    <div class="mp-row" style="margin-bottom:8px;">
+                        <span class="mp-kicker" style="margin:0;">{{ $order->event?->company?->name }}</span>
+                        <span class="mp-badge mp-badge-{{ $order->status }}">
+                            {{ __('public.status_'.$order->status) }}
+                        </span>
+                    </div>
+                    <h3>{{ $order->event?->title }}</h3>
+                    <p class="mp-meta">{{ number_format($order->amount, 2) }} {{ $order->currency }} · {{ $order->created_at?->format('M j, Y') }}</p>
+                    @if($order->isPaid() && $order->ticket)
+                        <div class="mp-price">{{ $order->ticket->ticket_code }}</div>
+                    @endif
+                </div>
+            </a>
+        @empty
+            <div class="mp-empty">{{ __('public.profile_empty') }}</div>
+        @endforelse
+    </div>
+@endsection

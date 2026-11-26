@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ asset('css/marketplace.css') }}?v=13">
+    <link rel="stylesheet" href="{{ asset('css/marketplace.css') }}?v=14">
     <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
 </head>
 <body class="mp-body">
@@ -49,7 +49,7 @@
         </footer>
     </main>
 
-    <nav class="mp-tabbar" aria-label="Primary">
+    <nav class="mp-tabbar mp-tabbar-4" aria-label="Primary">
         <a href="{{ route('public.discover') }}" class="{{ request()->routeIs('public.discover') ? 'is-active' : '' }}">
             <i class="fas fa-compass" aria-hidden="true"></i>
             <span>{{ __('public.discover') }}</span>
@@ -58,9 +58,13 @@
             <i class="fas fa-building" aria-hidden="true"></i>
             <span>{{ __('public.organizers') }}</span>
         </a>
-        <a href="{{ route('public.profile') }}" class="{{ request()->routeIs('public.profile') || request()->routeIs('public.orders*') ? 'is-active' : '' }}">
+        <a href="{{ route('public.tickets') }}" class="{{ request()->routeIs('public.tickets') || request()->routeIs('public.orders*') ? 'is-active' : '' }}">
             <i class="fas fa-ticket-alt" aria-hidden="true"></i>
             <span>{{ __('public.my_tickets') }}</span>
+        </a>
+        <a href="{{ route('public.profile') }}" class="{{ request()->routeIs('public.profile') ? 'is-active' : '' }}">
+            <i class="fas fa-user" aria-hidden="true"></i>
+            <span>{{ __('public.profile_tab') }}</span>
         </a>
     </nav>
 

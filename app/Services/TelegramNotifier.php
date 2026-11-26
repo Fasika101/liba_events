@@ -33,7 +33,7 @@ class TelegramNotifier
         $this->bot->sendMessage($attendee->telegram_id, $text, [
             'reply_markup' => [
                 'inline_keyboard' => [[
-                    ['text' => $locale === 'am' ? 'ትኬት ክፈት' : 'Open ticket', 'web_app' => ['url' => $this->bot->miniAppUrl().'/me']],
+                    ['text' => $locale === 'am' ? 'ትኬት ክፈት' : 'Open ticket', 'web_app' => ['url' => $this->bot->miniAppUrl().'/tickets']],
                 ]],
             ],
         ]);

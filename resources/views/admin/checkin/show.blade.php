@@ -15,7 +15,7 @@
     </x-slot>
 
     <style>
-        /* ── Result panel ── */
+        /* ── Result panel (manual / fallback) ── */
         #result-panel {
             display: none;
             border-radius: 12px;
@@ -27,14 +27,37 @@
         #result-panel.already    { background: #fef9c3; border: 2px solid #f59e0b; }
         #result-panel.invalid    { background: #fee2e2; border: 2px solid #ef4444; }
         #result-panel.wrong      { background: #fce7f3; border: 2px solid #db2777; }
-        #result-icon   { font-size: 3rem; line-height: 1; margin-bottom: .5rem; }
-        #result-status { font-size: 1.4rem; font-weight: 800; margin-bottom: .25rem; }
-        #result-buyer  { font-size: 1rem; font-weight: 600; }
-        #result-detail { font-size: .88rem; margin-top: .25rem; color: #475569; }
 
-        /* ── Scanner box ── */
+        /* ── Scanner box + on-camera overlay ── */
+        #qr-scanner-wrap {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+            min-height: 220px;
+        }
         #qr-reader { border-radius: 12px; overflow: hidden; background: #000; }
         #qr-reader video { border-radius: 12px; }
+        #scan-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            text-align: center;
+            backdrop-filter: blur(2px);
+        }
+        #scan-overlay.is-visible { display: flex; }
+        #scan-overlay.valid   { background: rgba(16, 185, 129, 0.88); color: #fff; }
+        #scan-overlay.already { background: rgba(245, 158, 11, 0.9); color: #111; }
+        #scan-overlay.invalid,
+        #scan-overlay.wrong   { background: rgba(239, 68, 68, 0.9); color: #fff; }
+        #scan-overlay .ov-icon { font-size: 2.6rem; line-height: 1; margin-bottom: .4rem; }
+        #scan-overlay .ov-status { font-size: 1.25rem; font-weight: 800; letter-spacing: .02em; }
+        #scan-overlay .ov-buyer { font-size: 1rem; font-weight: 600; margin-top: .35rem; }
+        #scan-overlay .ov-detail { font-size: .85rem; margin-top: .25rem; opacity: .92; }
 
         /* ── Counter cards ── */
         .stat-card { border-radius: 12px; padding: 1rem 1.2rem; text-align: center; }
@@ -70,7 +93,31 @@
         {{-- ── Left: Scanner + manual input ─────────────────── --}}
         <div class="col-lg-5 mb-4">
 
-            {{-- Result panel --}}
+            {{-- Camera scanner (confirmation overlays on the live camera) --}}
+            <div class="card card-outline card-info mb-3">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-camera mr-2"></i> Scan QR Code</h3>
+                    <div class="card-tools">
+                        <button id="startScanBtn" class="btn btn-info btn-sm">
+                            <i class="fas fa-play mr-1"></i> Start Camera
+                        </button>
+                        <button id="stopScanBtn" class="btn btn-secondary btn-sm" style="display:none;">
+                            <i class="fas fa-stop mr-1"></i> Stop
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-2">
+                    <div id="qr-scanner-wrap">
+                        <div id="qr-reader" style="width:100%;min-height:80px;"></div>
+                        <div id="scan-overlay" aria-live="assertive"></div>
+                    </div>
+                    <p class="text-muted text-center mt-2 mb-0" style="font-size:.8rem;" id="scanHint">
+                        Point the camera at the QR code — confirmation appears on screen instantly.
+                    </p>
+                </div>
+            </div>
+
+            {{-- Result panel (manual entry) --}}
             <div id="result-panel" class="mb-3"></div>
 
             {{-- Manual entry --}}
@@ -94,27 +141,6 @@
                             </div>
                         </div>
                     </form>
-                </div>
-            </div>
-
-            {{-- Camera scanner --}}
-            <div class="card card-outline card-info">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="fas fa-camera mr-2"></i> Scan QR Code</h3>
-                    <div class="card-tools">
-                        <button id="startScanBtn" class="btn btn-info btn-sm">
-                            <i class="fas fa-play mr-1"></i> Start Camera
-                        </button>
-                        <button id="stopScanBtn" class="btn btn-secondary btn-sm" style="display:none;">
-                            <i class="fas fa-stop mr-1"></i> Stop
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body p-2">
-                    <div id="qr-reader" style="width:100%;min-height:80px;"></div>
-                    <p class="text-muted text-center mt-2 mb-0" style="font-size:.8rem;" id="scanHint">
-                        Point the camera at the QR code on the ticket.
-                    </p>
                 </div>
             </div>
         </div>
@@ -220,52 +246,83 @@
             .finally(() => { isProcessing = false; });
         }
 
-        // ── Result panel ──────────────────────────────────────
-        function showResult(data) {
-            const panel = document.getElementById('result-panel');
-            let icon, statusText, buyer, detail, cls;
-
+        // ── Result UI (on-camera overlay + panel) ─────────────
+        function resultCopy(data) {
             switch (data.status) {
                 case 'valid':
-                    cls        = 'valid';
-                    icon       = '✅';
-                    statusText = 'ENTRY GRANTED';
-                    buyer      = data.buyer_name + (data.buyer_phone && data.buyer_phone !== '—' ? '  ·  ' + data.buyer_phone : '');
-                    detail     = data.ticket_code;
-                    break;
+                    return {
+                        cls: 'valid',
+                        icon: '✅',
+                        statusText: 'ENTRY GRANTED',
+                        buyer: data.buyer_name + (data.buyer_phone && data.buyer_phone !== '—' ? '  ·  ' + data.buyer_phone : ''),
+                        detail: data.ticket_code,
+                    };
                 case 'already_used':
-                    cls        = 'already';
-                    icon       = '⚠️';
-                    statusText = 'ALREADY CHECKED IN';
-                    buyer      = data.buyer_name + (data.buyer_phone && data.buyer_phone !== '—' ? '  ·  ' + data.buyer_phone : '');
-                    detail     = 'First checked in at ' + data.checked_in_at;
-                    break;
+                    return {
+                        cls: 'already',
+                        icon: '⚠️',
+                        statusText: 'ALREADY CHECKED IN',
+                        buyer: data.buyer_name + (data.buyer_phone && data.buyer_phone !== '—' ? '  ·  ' + data.buyer_phone : ''),
+                        detail: 'First checked in at ' + data.checked_in_at,
+                    };
                 case 'wrong_event':
-                    cls        = 'wrong';
-                    icon       = '🚫';
-                    statusText = 'WRONG EVENT';
-                    buyer      = '';
-                    detail     = data.message;
-                    break;
+                    return {
+                        cls: 'wrong',
+                        icon: '🚫',
+                        statusText: 'WRONG EVENT',
+                        buyer: '',
+                        detail: data.message,
+                    };
                 default:
-                    cls        = 'invalid';
-                    icon       = '❌';
-                    statusText = 'INVALID TICKET';
-                    buyer      = '';
-                    detail     = data.message || 'Ticket code not found.';
+                    return {
+                        cls: 'invalid',
+                        icon: '❌',
+                        statusText: 'INVALID TICKET',
+                        buyer: '',
+                        detail: data.message || 'Ticket code not found.',
+                    };
+            }
+        }
+
+        function showResult(data) {
+            const copy = resultCopy(data);
+            const panel = document.getElementById('result-panel');
+            const overlay = document.getElementById('scan-overlay');
+            const cameraRunning = !!(html5QrCode && document.getElementById('stopScanBtn').style.display !== 'none');
+
+            const bodyHtml =
+                '<div class="ov-icon">' + copy.icon + '</div>' +
+                '<div class="ov-status">' + escHtml(copy.statusText) + '</div>' +
+                (copy.buyer ? '<div class="ov-buyer">' + escHtml(copy.buyer) + '</div>' : '') +
+                (copy.detail ? '<div class="ov-detail">' + escHtml(copy.detail) + '</div>' : '');
+
+            // Always show confirmation on the camera when it is open.
+            if (cameraRunning && overlay) {
+                overlay.className = copy.cls + ' is-visible';
+                overlay.innerHTML = bodyHtml;
+                clearTimeout(overlay._hideTimer);
+                overlay._hideTimer = setTimeout(function () {
+                    overlay.classList.remove('is-visible');
+                }, data.status === 'valid' ? 2200 : 2800);
             }
 
-            panel.className = cls;
+            panel.className = copy.cls;
             panel.innerHTML =
-                '<div style="font-size:3rem;line-height:1;margin-bottom:.5rem;">' + icon + '</div>' +
-                '<div style="font-size:1.4rem;font-weight:800;margin-bottom:.25rem;">' + escHtml(statusText) + '</div>' +
-                (buyer ? '<div style="font-size:1rem;font-weight:600;">' + escHtml(buyer) + '</div>' : '') +
-                (detail ? '<div style="font-size:.88rem;margin-top:.25rem;color:#475569;">' + escHtml(detail) + '</div>' : '');
-            panel.style.display = 'block';
+                '<div style="font-size:3rem;line-height:1;margin-bottom:.5rem;">' + copy.icon + '</div>' +
+                '<div style="font-size:1.4rem;font-weight:800;margin-bottom:.25rem;">' + escHtml(copy.statusText) + '</div>' +
+                (copy.buyer ? '<div style="font-size:1rem;font-weight:600;">' + escHtml(copy.buyer) + '</div>' : '') +
+                (copy.detail ? '<div style="font-size:.88rem;margin-top:.25rem;color:#475569;">' + escHtml(copy.detail) + '</div>' : '');
+            panel.style.display = cameraRunning ? 'none' : 'block';
 
-            if (data.status === 'valid') {
+            if (data.status === 'valid' && !cameraRunning) {
                 setTimeout(() => { panel.style.display = 'none'; }, 5000);
             }
+
+            try {
+                if (navigator.vibrate) {
+                    navigator.vibrate(data.status === 'valid' ? [40, 30, 40] : [80]);
+                }
+            } catch (e) {}
 
             document.getElementById('manualCode').value = '';
         }
