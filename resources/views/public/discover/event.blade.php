@@ -92,7 +92,7 @@
                             <p class="mp-lux-hint" style="margin:0 0 10px;">{{ $account->instructions }}</p>
                         @endif
                         <button type="button" class="mp-btn mp-btn-secondary mp-btn-slim"
-                                data-copy="{{ $account->copyText() }}"
+                                data-copy="{{ $account->account_number }}"
                                 data-copied-label="{{ __('public.copied') }}">
                             {{ __('public.copy') }}
                         </button>
@@ -138,7 +138,8 @@
                         </div>
                         <div class="field">
                             <label for="buyer_address">{{ __('public.address') }}</label>
-                            <input id="buyer_address" name="buyer_address" value="{{ old('buyer_address') }}">
+                            <input id="buyer_address" name="buyer_address" value="{{ old('buyer_address') }}" required>
+                            @error('buyer_address') <div class="mp-error">{{ $message }}</div> @enderror
                         </div>
                         <div class="field">
                             <label for="buyer_occupation">{{ __('public.occupation') }}</label>

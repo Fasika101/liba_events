@@ -39,16 +39,6 @@ class CompanyBankAccount extends Model
 
     public function copyText(): string
     {
-        $lines = [
-            $this->bank_name,
-            $this->account_name,
-            $this->account_number,
-        ];
-
-        if (filled($this->instructions)) {
-            $lines[] = $this->instructions;
-        }
-
-        return implode("\n", $lines);
+        return (string) $this->account_number;
     }
 }

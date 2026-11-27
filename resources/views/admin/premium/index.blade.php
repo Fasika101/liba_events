@@ -90,7 +90,7 @@
                             <div class="custom-control custom-switch mb-3">
                                 <input type="checkbox" class="custom-control-input" id="auto_sms_on_sale" name="auto_sms_on_sale" value="1"
                                        @checked(old('auto_sms_on_sale', $company->auto_sms_on_sale))>
-                                <label class="custom-control-label" for="auto_sms_on_sale">Automatically SMS customers when agents complete a sale</label>
+                                <label class="custom-control-label" for="auto_sms_on_sale">SMS customers on ticket sales (agent + online) when Premium and SMS credits remain</label>
                             </div>
                             <div class="form-group mb-0">
                                 <label for="ticket_sms_template">Message template</label>

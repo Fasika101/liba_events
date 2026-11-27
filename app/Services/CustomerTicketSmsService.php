@@ -41,8 +41,17 @@ class CustomerTicketSmsService
         $company = $ticket->event?->company;
 
         if ($company === null || ! $company->isPremium()) {
+            Log::info('Ticket SMS skipped: organization is not Premium', [
+                'ticket_id' => $ticket->id,
+                'company_id' => $company?->id,
+                'source' => $source,
+            ]);
+
             return null;
         }
+
+        // Fresh credits / plan flags — avoid stale in-memory company after concurrent sales.
+        $company->refresh();
 
         if (! filled($ticket->buyer_phone)) {
             Log::info('Ticket SMS skipped: missing buyer phone', [
@@ -53,7 +62,8 @@ class CustomerTicketSmsService
             return null;
         }
 
-        // Active SMS plan = remaining credits. Do not require auto_sms_on_sale for purchases.
+        // Agent + online purchases share this path. Active SMS plan = remaining credits.
+        // Do not require auto_sms_on_sale (that toggle is only for optional extras in Premium UI).
         if (! $this->wallet->canSend($company)) {
             Log::warning('Ticket SMS skipped: SMS plan inactive or provider not ready', [
                 'ticket_id' => $ticket->id,

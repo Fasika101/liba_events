@@ -31,7 +31,7 @@ return [
     'phone' => 'Phone number',
     'phone_hint' => '9 digits only (without 0)',
     'email' => 'Email (optional)',
-    'address' => 'Address (optional)',
+    'address' => 'Address',
     'occupation' => 'Occupation (optional)',
     'yeneshaa_abat' => 'Yeneshaa Abat',
     'yes' => 'Yes',

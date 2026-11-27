@@ -196,13 +196,13 @@
 
                             <div class="form-group">
                                 <label class="font-weight-bold">
-                                    <i class="fas fa-map-marker-alt mr-1 text-primary"></i> Address
-                                    <small class="text-muted font-weight-normal">(optional)</small>
+                                    <i class="fas fa-map-marker-alt mr-1 text-primary"></i> Address <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" name="buyer_address" id="buyerAddress"
                                        value="{{ old('buyer_address') }}"
                                        class="form-control @error('buyer_address') is-invalid @enderror"
-                                       placeholder="City, neighbourhood or any location detail">
+                                       placeholder="City, neighbourhood or any location detail"
+                                       required>
                                 @error('buyer_address') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
 

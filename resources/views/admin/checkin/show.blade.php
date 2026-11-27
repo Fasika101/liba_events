@@ -96,17 +96,17 @@
             {{-- Camera scanner (confirmation overlays on the live camera) --}}
             <div class="card card-outline card-info mb-3">
                 <div class="card-header">
-                    <h3 class="card-title"><i class="fas fa-camera mr-2"></i> Scan QR Code</h3>
-                    <div class="card-tools">
-                        <button id="startScanBtn" class="btn btn-info btn-sm">
+                    <h3 class="card-title mb-0"><i class="fas fa-camera mr-2"></i> Scan QR Code</h3>
+                </div>
+                <div class="card-body p-2">
+                    <div class="d-flex flex-wrap align-items-center mb-2 px-1" style="gap:.5rem;">
+                        <button type="button" id="startScanBtn" class="btn btn-info btn-block-mobile">
                             <i class="fas fa-play mr-1"></i> Start Camera
                         </button>
-                        <button id="stopScanBtn" class="btn btn-secondary btn-sm" style="display:none;">
+                        <button type="button" id="stopScanBtn" class="btn btn-secondary btn-block-mobile" style="display:none;">
                             <i class="fas fa-stop mr-1"></i> Stop
                         </button>
                     </div>
-                </div>
-                <div class="card-body p-2">
                     <div id="qr-scanner-wrap">
                         <div id="qr-reader" style="width:100%;min-height:80px;"></div>
                         <div id="scan-overlay" aria-live="assertive"></div>

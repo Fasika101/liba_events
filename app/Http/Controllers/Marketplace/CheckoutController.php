@@ -139,7 +139,7 @@ class CheckoutController extends Controller
             'buyer_name' => ['required', 'string', 'max:255'],
             'buyer_email' => ['nullable', 'email', 'max:255'],
             'buyer_phone' => ['required', 'regex:/^\+251[0-9]{9}$/'],
-            'buyer_address' => ['nullable', 'string', 'max:500'],
+            'buyer_address' => ['required', 'string', 'max:500'],
             'buyer_occupation' => ['nullable', 'string', 'max:150'],
             'yeneshaa_abat' => ['required', 'in:0,1'],
             'bank_code' => ['nullable', 'string', 'max:40'],

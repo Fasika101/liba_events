@@ -200,6 +200,15 @@
         @endif
     </div>
 
+    <div class="ticket-wrap px-3 no-print">
+        @if (session('status'))
+            <div class="alert alert-success">{{ session('status') }}</div>
+        @endif
+        @if (session('warning'))
+            <div class="alert alert-warning">{{ session('warning') }}</div>
+        @endif
+    </div>
+
     {{-- Ticket --}}
     <div class="ticket-wrap px-3" id="receipt">
         <div class="ticket">

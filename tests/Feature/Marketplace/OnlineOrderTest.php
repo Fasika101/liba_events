@@ -112,6 +112,7 @@ class OnlineOrderTest extends TestCase
             ->post(route('public.events.checkout', $event), [
                 'buyer_name' => 'Abebe Kebede',
                 'buyer_phone' => '+251911234567',
+                'buyer_address' => 'Bole, Addis Ababa',
                 'yeneshaa_abat' => '1',
                 'bank_code' => 'cbe',
                 'transaction_reference' => 'FT999',
@@ -146,6 +147,7 @@ class OnlineOrderTest extends TestCase
                 'buyer_name' => 'Abebe Kebede',
                 'buyer_phone' => '+251911234567',
                 'buyer_email' => null,
+                'buyer_address' => 'Bole, Addis Ababa',
                 'yeneshaa_abat' => '1',
                 'bank_code' => 'cbe',
                 'transaction_reference' => 'FT123456789',
@@ -183,6 +185,7 @@ class OnlineOrderTest extends TestCase
             ->post(route('public.events.checkout', $event), [
                 'buyer_name' => 'Abebe Kebede',
                 'buyer_phone' => '+251911234567',
+                'buyer_address' => 'Bole, Addis Ababa',
                 'yeneshaa_abat' => '1',
                 'bank_code' => 'cbe',
                 'transaction_reference' => 'FTDEL001',

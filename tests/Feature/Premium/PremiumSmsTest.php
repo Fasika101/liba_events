@@ -45,6 +45,7 @@ class PremiumSmsTest extends TestCase
             'event_id' => $event->id,
             'buyer_name' => 'Buyer Test',
             'buyer_phone' => '+251911234567',
+            'buyer_address' => 'Addis Ababa',
             'yeneshaa_abat' => '0',
         ])->assertRedirect();
 
@@ -113,6 +114,7 @@ class PremiumSmsTest extends TestCase
             'event_id' => $event->id,
             'buyer_name' => 'Buyer Test',
             'buyer_phone' => '+251911234567',
+            'buyer_address' => 'Addis Ababa',
             'yeneshaa_abat' => '0',
         ])->assertRedirect();
 
@@ -145,6 +147,7 @@ class PremiumSmsTest extends TestCase
             'event_id' => $event->id,
             'buyer_name' => 'Buyer Test',
             'buyer_phone' => '+251911234567',
+            'buyer_address' => 'Addis Ababa',
             'yeneshaa_abat' => '0',
         ])->assertRedirect();
 

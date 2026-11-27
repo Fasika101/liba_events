@@ -118,7 +118,7 @@
         if (! btn) {
             return;
         }
-        var text = btn.getAttribute('data-copy') || '';
+        var text = (btn.getAttribute('data-copy') || '').trim();
         if (! text) {
             return;
         }

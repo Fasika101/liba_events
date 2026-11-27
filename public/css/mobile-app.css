@@ -272,6 +272,14 @@ body {
     }
 }
 
+@media (max-width: 991.98px) {
+    /* Check-in: Start Camera sits under the title and stays tappable in portrait */
+    .btn-block-mobile {
+        width: 100%;
+        min-height: 44px;
+    }
+}
+
 @media (max-width: 575.98px) {
     .content-header h1,
     .content-header .m-0 {

@@ -144,12 +144,13 @@ class TicketController extends Controller
             'buyer_name'    => ['required', 'string', 'max:255'],
             'buyer_email'   => ['nullable', 'email', 'max:255'],
             'buyer_phone'   => ['required', 'regex:/^\+251[0-9]{9}$/'],
-            'buyer_address'   => ['nullable', 'string', 'max:500'],
+            'buyer_address'   => ['required', 'string', 'max:500'],
             'buyer_occupation' => ['nullable', 'string', 'max:150'],
             'yeneshaa_abat'    => ['required', 'in:0,1'],
         ], [
             'buyer_phone.required' => 'Phone number is required.',
             'buyer_phone.regex'    => 'Phone number must be exactly 9 digits after +251 (e.g. +251912345678).',
+            'buyer_address.required' => 'Address is required.',
             'yeneshaa_abat.required' => 'Please select Yes or No for Yeneshaa Abat.',
             'yeneshaa_abat.in'       => 'Yeneshaa Abat must be Yes or No.',
         ]);
@@ -168,7 +169,7 @@ class TicketController extends Controller
                 'buyer_name'       => $data['buyer_name'],
                 'buyer_email'      => $data['buyer_email'] ?? null,
                 'buyer_phone'      => $data['buyer_phone'] ?? null,
-                'buyer_address'    => $data['buyer_address'] ?? null,
+                'buyer_address'    => $data['buyer_address'],
                 'buyer_occupation' => $data['buyer_occupation'] ?? null,
                 'yeneshaa_abat'    => (bool) (int) $data['yeneshaa_abat'],
                 'price_paid'       => $event->price,
@@ -178,17 +179,26 @@ class TicketController extends Controller
             ]);
         });
 
+        $ticket->load('event.company');
+        $smsFlash = null;
+
         try {
-            $customerSms->sendForTicketSale($ticket);
+            $log = $customerSms->sendForTicketSale($ticket);
+            $smsFlash = $log
+                ? ['status' => 'Ticket SMS sent to '.$ticket->buyer_phone.'.']
+                : ['warning' => 'Ticket saved, but SMS was not sent (Premium SMS plan / credits / provider may be inactive).'];
         } catch (\Throwable $e) {
-            // Ticket sale succeeds even if customer SMS fails (e.g. no credits / provider error).
+            // Ticket sale succeeds even if customer SMS fails (e.g. provider error).
             \Illuminate\Support\Facades\Log::warning('Agent ticket SMS failed after sale', [
                 'ticket_id' => $ticket->id,
                 'error' => $e->getMessage(),
             ]);
+            $smsFlash = ['warning' => 'Ticket saved, but SMS failed: '.$e->getMessage()];
         }
 
-        return redirect()->route('agent.tickets.receipt', $ticket);
+        return redirect()
+            ->route('agent.tickets.receipt', $ticket)
+            ->with($smsFlash);
     }
 
     public function receipt(Ticket $ticket)

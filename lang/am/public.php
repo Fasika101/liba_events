@@ -31,7 +31,7 @@ return [
     'phone' => 'ስልክ ቁጥር',
     'phone_hint' => '9 አሃዞች ብቻ (ያለ 0)',
     'email' => 'ኢሜይል (አማራጭ)',
-    'address' => 'አድራሻ (አማራጭ)',
+    'address' => 'አድራሻ',
     'occupation' => 'ሙያ (አማራጭ)',
     'yeneshaa_abat' => 'የንሻአ አባት',
     'yes' => 'አዎ',
