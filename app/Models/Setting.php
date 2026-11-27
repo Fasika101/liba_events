@@ -84,6 +84,33 @@ class Setting extends Model
         return str_repeat('•', max(8, strlen($value) - 4)).substr($value, -4);
     }
 
+    /**
+     * True when a DB row exists but cannot be decrypted (usually APP_KEY changed on deploy).
+     */
+    public static function isUnreadable(string $key): bool
+    {
+        if (! in_array($key, self::ENCRYPTED_KEYS, true)) {
+            return false;
+        }
+
+        $row = static::query()->where('key', $key)->first();
+        if ($row === null || ! filled($row->value)) {
+            return false;
+        }
+
+        if (! str_starts_with((string) $row->value, 'eyJpdiI')) {
+            return false;
+        }
+
+        try {
+            Crypt::decryptString((string) $row->value);
+
+            return false;
+        } catch (\Throwable) {
+            return true;
+        }
+    }
+
     private static function encryptIfNeeded(string $key, string $value): string
     {
         if (in_array($key, self::ENCRYPTED_KEYS, true)) {

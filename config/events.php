@@ -46,6 +46,8 @@ return [
         'driver' => env('SMS_DRIVER', 'log'),
         'otp_length' => (int) env('SMS_OTP_LENGTH', 6),
         'otp_expiry_minutes' => (int) env('SMS_OTP_EXPIRY_MINUTES', 10),
+        // Set SMS_VERIFY_SSL=false only if live host SSL CA bundle is broken.
+        'verify_ssl' => filter_var(env('SMS_VERIFY_SSL', true), FILTER_VALIDATE_BOOLEAN),
     ],
 
 ];

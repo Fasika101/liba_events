@@ -38,6 +38,65 @@
         </div>
     @endif
 
+    {{-- Live diagnostics: why SMS works locally but not on production --}}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card card-outline {{ $settings['is_live_driver'] && $settings['has_api_key'] && ($probe['ok'] ?? false) ? 'card-success' : 'card-warning' }}">
+                <div class="card-header">
+                    <h3 class="card-title mb-0"><i class="fas fa-stethoscope mr-2"></i>Live diagnostics</h3>
+                </div>
+                <div class="card-body py-3">
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <strong>Provider</strong>
+                            <div>
+                                @if($settings['is_live_driver'])
+                                    <span class="badge badge-success">SMSEthiopia (live)</span>
+                                @else
+                                    <span class="badge badge-warning">Log only</span>
+                                    <div class="small text-danger mt-1">No real SMS is sent until you switch to SMSEthiopia and save.</div>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <strong>API key</strong>
+                            <div>
+                                @if($settings['api_key_corrupt'] ?? false)
+                                    <span class="badge badge-danger">Cannot decrypt</span>
+                                    <div class="small text-danger mt-1">APP_KEY likely changed on deploy. Paste the key again and Save.</div>
+                                @elseif($settings['has_api_key'])
+                                    <span class="badge badge-success">Readable</span>
+                                    <code class="small ml-1">{{ $settings['api_key_masked'] }}</code>
+                                @else
+                                    <span class="badge badge-danger">Missing</span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <strong>Outbound to smsethiopia.com</strong>
+                            <div>
+                                @if($probe['ok'] ?? false)
+                                    <span class="badge badge-success">OK</span>
+                                    <div class="small text-muted mt-1">{{ $probe['message'] }}</div>
+                                @else
+                                    <span class="badge badge-danger">Blocked / failed</span>
+                                    <div class="small text-danger mt-1">{{ $probe['message'] ?? 'Unknown' }}</div>
+                                    <div class="small text-muted mt-1">
+                                        Ask hosting to allow HTTPS to smsethiopia.com.
+                                        If the error mentions SSL/certificate, set <code>SMS_VERIFY_SSL=false</code> in live <code>.env</code> then <code>php artisan config:clear</code>.
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    <div class="small text-muted mt-2 mb-0">
+                        Local often “works” because provider is <strong>Log only</strong> (writes to laravel.log). Live needs SMSEthiopia + readable key + outbound HTTPS.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-lg-8">
             <div class="card card-outline card-primary">
@@ -74,7 +133,12 @@
 
                         <div class="form-group">
                             <label for="api_key">API key</label>
-                            @if($settings['has_api_key'])
+                            @if($settings['api_key_corrupt'] ?? false)
+                                <div class="alert alert-danger py-2 px-3 mb-2">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    Saved key exists but cannot be decrypted. Paste a fresh API key below and Save.
+                                </div>
+                            @elseif($settings['has_api_key'])
                                 <div class="alert alert-success py-2 px-3 mb-2">
                                     <i class="fas fa-check-circle mr-1"></i>
                                     Key on file:
@@ -84,11 +148,12 @@
                             @endif
                             <input type="password" name="api_key" id="api_key"
                                    class="form-control @error('api_key') is-invalid @enderror"
-                                   placeholder="{{ $settings['has_api_key'] ? 'Leave blank to keep current key' : 'Paste your SMSEthiopia API key' }}"
-                                   autocomplete="new-password">
+                                   placeholder="{{ ($settings['has_api_key'] && !($settings['api_key_corrupt'] ?? false)) ? 'Leave blank to keep current key' : 'Paste your SMSEthiopia API key' }}"
+                                   autocomplete="new-password"
+                                   @if(($settings['api_key_corrupt'] ?? false) || (! $settings['has_api_key'] && old('driver', $settings['driver']) === 'smsethiopia')) required @endif>
                             <small class="form-text text-muted">
                                 From SMSEthiopia dashboard: <strong>Console → API Keys</strong>.
-                                Saved once in the database — you do not need to paste it again after deploy.
+                                Encrypted with this server’s <code>APP_KEY</code> — if you change APP_KEY after deploy, re-paste the key here.
                             </small>
                             @error('api_key')<span class="invalid-feedback">{{ $message }}</span>@enderror
                         </div>
@@ -169,7 +234,7 @@
                     @csrf
                     <div class="card-body">
                         <p class="text-muted small">
-                            Sends a test message using your saved settings. Ethiopian numbers only (+251, 9 digits).
+                            Sends a <strong>real</strong> SMS via SMSEthiopia. Use this on live after fixing diagnostics above.
                         </p>
                         <div class="form-group">
                             <label for="test_phone">Test phone number</label>
@@ -188,9 +253,12 @@
                         </div>
                     </div>
                     <div class="card-footer">
-                        <button type="submit" class="btn btn-info">
+                        <button type="submit" class="btn btn-info" @disabled(! $settings['is_live_driver'] || ! $settings['has_api_key'])>
                             <i class="fas fa-paper-plane mr-1"></i> Send test
                         </button>
+                        @if(! $settings['is_live_driver'] || ! $settings['has_api_key'])
+                            <div class="small text-muted mt-2 mb-0">Save SMSEthiopia + API key first.</div>
+                        @endif
                     </div>
                 </form>
             </div>
