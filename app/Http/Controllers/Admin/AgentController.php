@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class AgentController extends Controller
 {
@@ -99,6 +100,45 @@ class AgentController extends Controller
             : "Agent \"{$user->name}\" has been reactivated.";
 
         return back()->with('status', $message);
+    }
+
+    public function resetPassword(Request $request, User $user)
+    {
+        if ($user->role !== 'agent') {
+            return back()->with('error', 'Only agent account passwords can be reset.');
+        }
+
+        if ((int) $user->company_id !== auth()->user()->requireCompanyId()) {
+            abort(404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'password.required' => 'Enter a new password for the agent.',
+            'password.min' => 'Password must be at least 8 characters.',
+            'password.confirmed' => 'Password confirmation does not match.',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()
+                ->route('admin.agents.index')
+                ->withErrors($validator)
+                ->withInput()
+                ->with('reset_agent', [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'action' => route('admin.agents.reset-password', $user),
+                ]);
+        }
+
+        $user->update([
+            'password' => $validator->validated()['password'],
+        ]);
+
+        return redirect()
+            ->route('admin.agents.index')
+            ->with('status', "Password updated for agent \"{$user->name}\". Share the new password with them securely.");
     }
 
     public function destroy(Request $request, User $user)

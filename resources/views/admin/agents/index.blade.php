@@ -230,6 +230,58 @@
         </div>
     </div>
 
+    {{-- Reset agent password modal --}}
+    <div class="modal fade" id="resetAgentPasswordModal" tabindex="-1" role="dialog" aria-labelledby="resetAgentPasswordLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <form method="POST" id="resetAgentPasswordForm" class="modal-content">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resetAgentPasswordLabel">
+                        <i class="fas fa-key mr-2"></i> Reset agent password
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3">
+                        Set a new login password for
+                        <strong id="resetAgentName">agent</strong>
+                        <span class="text-muted" id="resetAgentEmail"></span>.
+                    </p>
+                    <div class="form-group">
+                        <label class="font-weight-bold" for="reset_password">New password</label>
+                        <input type="password"
+                               name="password"
+                               id="reset_password"
+                               class="form-control @error('password') is-invalid @enderror"
+                               minlength="8"
+                               required
+                               autocomplete="new-password">
+                        @error('password') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                        <small class="form-text text-muted">At least 8 characters. Share it with the agent securely.</small>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="font-weight-bold" for="reset_password_confirmation">Confirm password</label>
+                        <input type="password"
+                               name="password_confirmation"
+                               id="reset_password_confirmation"
+                               class="form-control"
+                               minlength="8"
+                               required
+                               autocomplete="new-password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-1"></i> Save new password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     @push('styles')
     <style>
     /* Agents page mobile responsiveness */
@@ -255,6 +307,27 @@
         }
     }
 
+    $('#resetAgentPasswordModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var form = document.getElementById('resetAgentPasswordForm');
+        form.action = button.data('action');
+        document.getElementById('resetAgentName').textContent = button.data('agent-name') || 'agent';
+        var email = button.data('agent-email') || '';
+        document.getElementById('resetAgentEmail').textContent = email ? '(' + email + ')' : '';
+        document.getElementById('reset_password').value = '';
+        document.getElementById('reset_password_confirmation').value = '';
+    });
+
+    @if (session('reset_agent'))
+        (function () {
+            var form = document.getElementById('resetAgentPasswordForm');
+            form.action = @json(session('reset_agent.action'));
+            document.getElementById('resetAgentName').textContent = @json(session('reset_agent.name'));
+            var email = @json(session('reset_agent.email'));
+            document.getElementById('resetAgentEmail').textContent = email ? '(' + email + ')' : '';
+            $('#resetAgentPasswordModal').modal('show');
+        })();
+    @endif
     </script>
     @endpush
 </x-app-layout>

@@ -22,7 +22,8 @@ class TicketSalesController extends Controller
             ->forCompany($companyId)
             ->withCount('tickets')
             ->withSum('tickets', 'price_paid')
-            ->orderByDesc('tickets_count')
+            ->orderByDesc('start_at')
+            ->orderByDesc('id')
             ->get();
 
         $totalTickets = $events->sum('tickets_count');

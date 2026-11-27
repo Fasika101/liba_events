@@ -159,6 +159,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('agents', [AgentController::class, 'store'])->name('agents.store');
         Route::post('agents/telegram-menu-button', [AgentController::class, 'setTelegramMenuButton'])->name('agents.telegram-menu');
         Route::post('agents/{user}/suspend', [AgentController::class, 'suspend'])->name('agents.suspend');
+        Route::post('agents/{user}/reset-password', [AgentController::class, 'resetPassword'])->name('agents.reset-password');
         Route::post('agents/{user}/delete', [AgentController::class, 'destroy'])->name('agents.destroy');
 
         Route::get('customers', [AdminCustomerController::class, 'index'])->name('customers.index');

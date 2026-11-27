@@ -1,3 +1,15 @@
+<button type="button"
+        class="btn btn-sm btn-outline-primary mr-1 mb-1 mb-md-0"
+        title="Reset password"
+        style="min-width:88px;"
+        data-toggle="modal"
+        data-target="#resetAgentPasswordModal"
+        data-agent-id="{{ $agent->id }}"
+        data-agent-name="{{ $agent->name }}"
+        data-agent-email="{{ $agent->email }}"
+        data-action="{{ route('admin.agents.reset-password', $agent) }}">
+    <i class="fas fa-key mr-1"></i> Password
+</button>
 <form method="POST" class="d-inline mr-1 mb-1 mb-md-0"
       action="{{ route('admin.agents.suspend', $agent) }}"
       onsubmit="return confirm('{{ $agent->is_suspended ? 'Reactivate this agent?' : 'Suspend this agent? They will not be able to log in.' }}')">

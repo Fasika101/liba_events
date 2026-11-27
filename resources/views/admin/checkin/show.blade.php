@@ -2,13 +2,13 @@
     <x-slot name="header">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0">Check-In — {{ $event->title }}</h1>
+                <h1 class="m-0" title="{{ $event->title }}">Check-In — {{ \Illuminate\Support\Str::limit($event->title, 13, '…') }}</h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
                     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ route($indexRoute) }}">Check-In</a></li>
-                    <li class="breadcrumb-item active">{{ $event->title }}</li>
+                    <li class="breadcrumb-item active" title="{{ $event->title }}">{{ \Illuminate\Support\Str::limit($event->title, 13, '…') }}</li>
                 </ol>
             </div>
         </div>
