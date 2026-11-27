@@ -80,7 +80,7 @@
                             </div>
                             <div class="col-md-6">
                                 <strong>Sold by</strong><br>
-                                {{ $ticket->agent->name ?? '—' }}
+                                {{ $ticket->soldByLabel() }}
                                 <span class="text-muted">·</span>
                                 <span class="text-muted">@ethdate($ticket->sold_at)</span>
                             </div>

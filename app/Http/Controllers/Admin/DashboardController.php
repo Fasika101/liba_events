@@ -30,12 +30,32 @@ class DashboardController extends Controller
 
         $ticketQuery = Ticket::whereHas('event', fn ($q) => $q->withTrashed()->where('company_id', $companyId));
 
+        $miniAppTickets = (clone $ticketQuery)
+            ->where(function ($q) {
+                $q->whereNull('agent_id')
+                    ->orWhere('source', 'self');
+            });
+
+        $salesChannels = collect([
+            (object) [
+                'name' => 'Mini App',
+                'is_mini_app' => true,
+                'tickets_count' => (clone $miniAppTickets)->count(),
+                'tickets_sum_price_paid' => (clone $miniAppTickets)->sum('price_paid'),
+            ],
+        ])->concat($agentStats->map(fn (User $agent) => (object) [
+            'name' => $agent->name,
+            'is_mini_app' => false,
+            'tickets_count' => $agent->tickets_count,
+            'tickets_sum_price_paid' => $agent->tickets_sum_price_paid,
+        ]))->sortByDesc('tickets_count')->values();
+
         $summary = [
             'events'  => Event::forCompany($companyId)->count(),
             'tickets' => (clone $ticketQuery)->count(),
             'revenue' => (clone $ticketQuery)->sum('price_paid'),
         ];
 
-        return view('admin.dashboard', compact('events', 'agentStats', 'summary'));
+        return view('admin.dashboard', compact('events', 'agentStats', 'salesChannels', 'summary'));
     }
 }

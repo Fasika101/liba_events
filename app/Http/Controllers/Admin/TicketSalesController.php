@@ -41,10 +41,13 @@ class TicketSalesController extends Controller
             ->get();
 
         $totalRevenue = $tickets->sum('price_paid');
-        $agentSummary = $tickets->groupBy('agent_id')->map(fn ($t) => [
-            'name' => $t->first()->agent->name ?? 'Unknown',
-            'count' => $t->count(),
-            'revenue' => $t->sum('price_paid'),
+        $agentSummary = $tickets->groupBy(function (Ticket $ticket) {
+            return $ticket->agent_id ? 'agent:'.$ticket->agent_id : 'mini_app';
+        })->map(fn ($group) => [
+            'name' => $group->first()->soldByLabel(),
+            'is_mini_app' => $group->first()->agent_id === null,
+            'count' => $group->count(),
+            'revenue' => $group->sum('price_paid'),
         ])->sortByDesc('count');
 
         return view('admin.ticket-sales.show', compact('event', 'tickets', 'totalRevenue', 'agentSummary'));

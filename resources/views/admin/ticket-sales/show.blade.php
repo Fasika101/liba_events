@@ -91,10 +91,14 @@
             @foreach($agentSummary as $stat)
                 <div class="col-lg-3 col-md-4 col-6 mb-2">
                     <div class="info-box shadow-sm mb-0">
-                        <span class="info-box-icon bg-secondary">
-                            <span style="font-size:1.1rem;font-weight:700;">
-                                {{ strtoupper(substr($stat['name'], 0, 1)) }}
-                            </span>
+                        <span class="info-box-icon {{ !empty($stat['is_mini_app']) ? 'bg-info' : 'bg-secondary' }}">
+                            @if (!empty($stat['is_mini_app']))
+                                <i class="fab fa-telegram-plane"></i>
+                            @else
+                                <span style="font-size:1.1rem;font-weight:700;">
+                                    {{ strtoupper(substr($stat['name'], 0, 1)) }}
+                                </span>
+                            @endif
                         </span>
                         <div class="info-box-content">
                             <span class="info-box-text text-truncate" title="{{ $stat['name'] }}">{{ $stat['name'] }}</span>
@@ -247,7 +251,13 @@
                                     <td>{{ $ticket->buyer_occupation ?: '—' }}</td>
                                     <td>{{ $ticket->yeneshaa_abat ? 'Yes' : 'No' }}</td>
                                     <td><code>{{ $ticket->ticket_code }}</code></td>
-                                    <td><span class="badge badge-secondary">{{ $ticket->agent->name ?? '—' }}</span></td>
+                                    <td>
+                                        @if ($ticket->agent_id === null || ($ticket->source ?? null) === 'self')
+                                            <span class="badge badge-info"><i class="fab fa-telegram-plane mr-1"></i>Mini App</span>
+                                        @else
+                                            <span class="badge badge-secondary">{{ $ticket->soldByLabel() }}</span>
+                                        @endif
+                                    </td>
                                     <td class="text-muted">@ethdate($ticket->sold_at)</td>
                                     <td class="text-right font-weight-bold text-success">
                                         {{ number_format($ticket->price_paid, 2) }} {{ $ticket->currency }}

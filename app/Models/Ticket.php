@@ -45,6 +45,27 @@ class Ticket extends Model
         return $this->checked_in_at !== null;
     }
 
+    /**
+     * Human label for who sold / where the ticket came from.
+     */
+    public function soldByLabel(): string
+    {
+        if ($this->agent?->name) {
+            return (string) $this->agent->name;
+        }
+
+        if (($this->source ?? null) === 'self' || $this->agent_id === null) {
+            return 'Mini App';
+        }
+
+        return 'Unknown';
+    }
+
+    public function isMiniAppPurchase(): bool
+    {
+        return ($this->source ?? null) === 'self' || ($this->agent_id === null && filled($this->ticket_order_id));
+    }
+
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);

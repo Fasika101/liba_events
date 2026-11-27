@@ -111,7 +111,7 @@ class EventBuyersExport implements FromArray, WithColumnWidths, WithEvents, With
                     'buyer_occupation' => $t->buyer_occupation ?? '',
                     'yeneshaa_abat'    => $t->yeneshaa_abat ? 'Yes' : 'No',
                     'ticket_code'      => $t->ticket_code,
-                    'sold_by'          => $t->agent->name ?? '',
+                    'sold_by'          => $t->soldByLabel(),
                     'date_sold'        => $t->sold_at ? $t->sold_at->format('Y-m-d H:i') : '',
                     'amount_paid'      => (float) $t->price_paid,
                     'currency'         => $t->currency,

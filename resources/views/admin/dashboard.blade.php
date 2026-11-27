@@ -129,10 +129,10 @@
         <div class="col-lg-5 col-12">
             <div class="card card-outline card-success">
                 <div class="card-header">
-                    <h3 class="card-title">Top Sales Agents</h3>
+                    <h3 class="card-title">Sales by channel</h3>
                     <div class="card-tools">
                         <a href="{{ route('admin.agents.index') }}" class="btn btn-success btn-sm">
-                            <i class="fas fa-users mr-1"></i> Manage
+                            <i class="fas fa-users mr-1"></i> Manage agents
                         </a>
                     </div>
                 </div>
@@ -140,28 +140,36 @@
                     <table class="table table-hover mb-0">
                         <thead class="thead-light">
                             <tr>
-                                <th>Agent</th>
+                                <th>Channel / Agent</th>
                                 <th>Tickets</th>
                                 <th>Revenue</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($agentStats as $agent)
+                            @forelse ($salesChannels as $channel)
                                 <tr>
                                     <td>
-                                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary text-white mr-2" style="width:28px;height:28px;font-size:.75rem;">
-                                            {{ strtoupper(substr($agent->name, 0, 1)) }}
-                                        </span>
-                                        {{ $agent->name }}
+                                        @if (!empty($channel->is_mini_app))
+                                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-info text-white mr-2" style="width:28px;height:28px;font-size:.75rem;">
+                                                <i class="fab fa-telegram-plane"></i>
+                                            </span>
+                                            <strong>Mini App</strong>
+                                            <span class="badge badge-info ml-1">Telegram</span>
+                                        @else
+                                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary text-white mr-2" style="width:28px;height:28px;font-size:.75rem;">
+                                                {{ strtoupper(substr($channel->name, 0, 1)) }}
+                                            </span>
+                                            {{ $channel->name }}
+                                        @endif
                                     </td>
-                                    <td><span class="badge badge-info">{{ $agent->tickets_count }}</span></td>
-                                    <td class="text-success font-weight-bold">{{ number_format($agent->tickets_sum_price_paid ?? 0, 2) }}</td>
+                                    <td><span class="badge badge-info">{{ $channel->tickets_count }}</span></td>
+                                    <td class="text-success font-weight-bold">{{ number_format($channel->tickets_sum_price_paid ?? 0, 2) }}</td>
                                 </tr>
                             @empty
                                 <tr>
                                     <td colspan="3" class="text-center text-muted py-4">
                                         <i class="fas fa-user-slash fa-2x mb-2 d-block"></i>
-                                        No agents yet.
+                                        No sales yet.
                                     </td>
                                 </tr>
                             @endforelse
