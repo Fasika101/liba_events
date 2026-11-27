@@ -89,11 +89,16 @@ class PremiumSmsTest extends TestCase
             ->assertSee('Request Premium');
     }
 
-    public function test_sms_blocked_without_company_api_key(): void
+    public function test_sms_uses_platform_api_key_when_org_has_no_key(): void
     {
         \App\Models\Setting::set('sms.driver', 'log');
+        \App\Models\Setting::set('sms.api_key', 'platform-key');
 
-        $company = $this->premiumCompanyWithApi(['sms_api_key' => null, 'sms_credits' => 10]);
+        $company = $this->premiumCompanyWithApi([
+            'sms_api_key' => null,
+            'sms_credits' => 10,
+            'auto_sms_on_sale' => false, // purchases still SMS when plan credits remain
+        ]);
         $agent = User::factory()->create(['company_id' => $company->id, 'role' => 'agent']);
         $event = \App\Models\Event::create([
             'company_id' => $company->id,
@@ -112,7 +117,39 @@ class PremiumSmsTest extends TestCase
         ])->assertRedirect();
 
         $company->refresh();
-        $this->assertSame(10, $company->sms_credits);
+        $this->assertSame(9, $company->sms_credits);
+        $this->assertDatabaseHas('company_sms_logs', [
+            'company_id' => $company->id,
+            'phone' => '+251911234567',
+            'status' => 'sent',
+        ]);
+    }
+
+    public function test_sms_blocked_without_credits(): void
+    {
+        \App\Models\Setting::set('sms.driver', 'log');
+        \App\Models\Setting::set('sms.api_key', 'platform-key');
+
+        $company = $this->premiumCompanyWithApi(['sms_credits' => 0, 'wallet_balance_etb' => 0]);
+        $agent = User::factory()->create(['company_id' => $company->id, 'role' => 'agent']);
+        $event = \App\Models\Event::create([
+            'company_id' => $company->id,
+            'title' => 'Test Event',
+            'price' => 100,
+            'currency' => 'ETB',
+            'start_at' => now()->addDay(),
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($agent)->post(route('agent.tickets.store'), [
+            'event_id' => $event->id,
+            'buyer_name' => 'Buyer Test',
+            'buyer_phone' => '+251911234567',
+            'yeneshaa_abat' => '0',
+        ])->assertRedirect();
+
+        $company->refresh();
+        $this->assertSame(0, $company->sms_credits);
         $this->assertDatabaseMissing('company_sms_logs', ['company_id' => $company->id]);
     }
 

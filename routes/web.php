@@ -25,6 +25,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SuperAdmin\BulkSmsController as SuperAdminBulkSmsController;
 use App\Http\Controllers\SuperAdmin\TelegramBroadcastController as SuperAdminTelegramBroadcastController;
 use App\Http\Controllers\SuperAdmin\MarketplaceAdController as SuperAdminMarketplaceAdController;
+use App\Http\Controllers\SuperAdmin\ErrorLogController as SuperAdminErrorLogController;
 use App\Http\Controllers\SuperAdmin\CompanyAdminController as SuperAdminCompanyAdminController;
 use App\Http\Controllers\SuperAdmin\CompanyController as SuperAdminCompanyController;
 use App\Http\Controllers\SuperAdmin\CrmController as SuperAdminCrmController;
@@ -143,6 +144,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/sender-id-requests/{senderIdRequest}/reject', [SuperAdminCompanyPremiumController::class, 'rejectSenderIdRequest'])->name('sender-id-requests.reject');
 
         Route::get('/accounting', [SuperAdminSmsAccountingController::class, 'index'])->name('accounting.index');
+
+        Route::get('/error-logs', [SuperAdminErrorLogController::class, 'index'])->name('error-logs.index');
 
         Route::get('/crm', [SuperAdminCrmController::class, 'index'])->name('crm.index');
         Route::get('/crm/data', [SuperAdminCrmController::class, 'data'])->name('crm.data');

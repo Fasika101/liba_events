@@ -8,6 +8,7 @@ use App\Models\Ticket;
 use App\Models\User;
 use App\Support\CompanySmsConfig;
 use App\Support\SmsConfig;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 use RuntimeException;
 
@@ -18,22 +19,23 @@ class CustomerTicketSmsService
         private readonly CompanySmsWalletService $wallet
     ) {}
 
+    /**
+     * Agent / counter sale: send when the org has an active SMS plan (credits left).
+     */
     public function sendForTicketSale(Ticket $ticket): ?CompanySmsLog
     {
-        $ticket->loadMissing('event.company');
-        $company = $ticket->event?->company;
-
-        if ($company === null || ! $company->isPremium() || ! $company->auto_sms_on_sale) {
-            return null;
-        }
-
-        return $this->sendTicketSaleMessage($ticket, $company);
+        return $this->sendForPurchase($ticket, 'agent_sale');
     }
 
     /**
-     * Online / Telegram self-purchase: always attempt SMS when org marks order paid.
+     * Online / Telegram self-purchase after payment is confirmed.
      */
     public function sendForSelfPurchasePaid(Ticket $ticket): ?CompanySmsLog
+    {
+        return $this->sendForPurchase($ticket, 'online_purchase');
+    }
+
+    private function sendForPurchase(Ticket $ticket, string $source): ?CompanySmsLog
     {
         $ticket->loadMissing('event.company');
         $company = $ticket->event?->company;
@@ -42,19 +44,34 @@ class CustomerTicketSmsService
             return null;
         }
 
+        if (! filled($ticket->buyer_phone)) {
+            Log::info('Ticket SMS skipped: missing buyer phone', [
+                'ticket_id' => $ticket->id,
+                'source' => $source,
+            ]);
+
+            return null;
+        }
+
+        // Active SMS plan = remaining credits. Do not require auto_sms_on_sale for purchases.
+        if (! $this->wallet->canSend($company)) {
+            Log::warning('Ticket SMS skipped: SMS plan inactive or provider not ready', [
+                'ticket_id' => $ticket->id,
+                'company_id' => $company->id,
+                'sms_credits' => $company->sms_credits,
+                'has_api_key' => CompanySmsConfig::hasApiKey($company),
+                'driver' => SmsConfig::driver(),
+                'source' => $source,
+            ]);
+
+            return null;
+        }
+
         return $this->sendTicketSaleMessage($ticket, $company);
     }
 
-    private function sendTicketSaleMessage(Ticket $ticket, Company $company): ?CompanySmsLog
+    private function sendTicketSaleMessage(Ticket $ticket, Company $company): CompanySmsLog
     {
-        if (! filled($ticket->buyer_phone)) {
-            return null;
-        }
-
-        if (! $this->wallet->canSend($company)) {
-            return null;
-        }
-
         $message = $this->buildTicketMessage($ticket, $company);
 
         return $this->sendAndLog(
@@ -96,11 +113,7 @@ class CustomerTicketSmsService
         ?User $sender
     ): CompanySmsLog {
         if (! CompanySmsConfig::canSend($company)) {
-            throw new RuntimeException('SMS API key is not configured for your organization.');
-        }
-
-        if (! SmsConfig::isConfigured()) {
-            throw new RuntimeException('SMS provider is not configured.');
+            throw new RuntimeException('SMS is not configured. Set the platform API key in Super Admin → SMS settings, or attach an org key.');
         }
 
         $log = CompanySmsLog::create([
@@ -136,6 +149,12 @@ class CustomerTicketSmsService
             ]);
         } catch (\Throwable $exception) {
             $log->update(['error_message' => $exception->getMessage()]);
+            Log::error('Ticket SMS send failed', [
+                'company_id' => $company->id,
+                'ticket_id' => $ticket?->id,
+                'phone' => $phone,
+                'error' => $exception->getMessage(),
+            ]);
 
             throw $exception;
         }

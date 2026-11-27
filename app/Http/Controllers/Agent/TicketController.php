@@ -180,8 +180,12 @@ class TicketController extends Controller
 
         try {
             $customerSms->sendForTicketSale($ticket);
-        } catch (\Throwable) {
-            // Ticket sale succeeds even if customer SMS fails (e.g. no credits).
+        } catch (\Throwable $e) {
+            // Ticket sale succeeds even if customer SMS fails (e.g. no credits / provider error).
+            \Illuminate\Support\Facades\Log::warning('Agent ticket SMS failed after sale', [
+                'ticket_id' => $ticket->id,
+                'error' => $e->getMessage(),
+            ]);
         }
 
         return redirect()->route('agent.tickets.receipt', $ticket);

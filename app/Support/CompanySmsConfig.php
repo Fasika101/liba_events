@@ -6,9 +6,16 @@ use App\Models\Company;
 
 class CompanySmsConfig
 {
+    /**
+     * Prefer the organization's own key; otherwise use the platform Super Admin key.
+     */
     public static function apiKey(Company $company): ?string
     {
-        return filled($company->sms_api_key) ? (string) $company->sms_api_key : null;
+        if (filled($company->sms_api_key)) {
+            return (string) $company->sms_api_key;
+        }
+
+        return SmsConfig::apiKey();
     }
 
     public static function senderId(Company $company): ?string
@@ -22,7 +29,7 @@ class CompanySmsConfig
 
     public static function hasApiKey(Company $company): bool
     {
-        return filled($company->sms_api_key);
+        return filled(self::apiKey($company));
     }
 
     public static function canSend(Company $company): bool
@@ -31,10 +38,11 @@ class CompanySmsConfig
             return false;
         }
 
-        if (SmsConfig::driver() === 'log') {
-            return self::hasApiKey($company);
+        if (! self::hasApiKey($company)) {
+            return false;
         }
 
-        return self::hasApiKey($company) && SmsConfig::isConfigured();
+        // Platform driver must be ready for live sending (log driver is fine for local).
+        return SmsConfig::isConfigured();
     }
 }

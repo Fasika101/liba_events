@@ -79,8 +79,10 @@ class CompanySmsWalletService
 
     public function canSend(Company $company): bool
     {
+        // "SMS plan active" = Premium + remaining credits + a usable API key
+        // (org key or Super Admin platform key).
         return $company->isPremium()
             && $company->sms_credits > 0
-            && CompanySmsConfig::hasApiKey($company);
+            && CompanySmsConfig::canSend($company);
     }
 }

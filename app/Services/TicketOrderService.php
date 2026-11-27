@@ -68,6 +68,10 @@ class TicketOrderService
                 $this->submitVerifyEt($order);
             } catch (\Throwable $e) {
                 Log::warning('Verify.et submit failed', ['order' => $order->id, 'error' => $e->getMessage()]);
+                $order->update([
+                    'verify_et_status' => 'error: '.$e->getMessage(),
+                    'verify_et_payload' => json_encode(['error' => $e->getMessage()]),
+                ]);
             }
         }
 
@@ -193,8 +197,13 @@ class TicketOrderService
 
         try {
             $this->customerSms->sendForSelfPurchasePaid($order->ticket);
-        } catch (\Throwable) {
-            // Order is paid even if SMS fails.
+        } catch (\Throwable $e) {
+            // Order is paid even if SMS fails — log so live issues are visible.
+            \Illuminate\Support\Facades\Log::warning('Online purchase SMS failed after markPaid', [
+                'order_id' => $order->id,
+                'ticket_id' => $order->ticket_id,
+                'error' => $e->getMessage(),
+            ]);
         }
 
         try {
