@@ -27,6 +27,16 @@ class CheckoutController extends Controller
             'buyer_phone' => ['nullable', 'string', 'max:20'],
         ]);
 
+        $data['transaction_reference'] = VerifyEtClient::normalizeReference($data['transaction_reference']);
+
+        if ($this->transactionReferenceAlreadyUsed($data['transaction_reference'])) {
+            return response()->json([
+                'ok' => false,
+                'state' => 'reference_used',
+                'message' => __('public.verify_reference_used'),
+            ], 422);
+        }
+
         if (! $verifyEt->isConfigured()) {
             return response()->json([
                 'ok' => true,
@@ -67,26 +77,13 @@ class CheckoutController extends Controller
             ]);
         }
 
-        if (($result['amount_matched'] ?? null) === true && ($result['verified'] ?? false) === true) {
-            if (($result['settlement_matched'] ?? null) === false) {
-                return response()->json([
-                    'ok' => false,
-                    'state' => 'settlement_mismatch',
-                    'message' => __('public.verify_settlement_mismatch'),
-                    'amount' => $result['amount'],
-                ]);
-            }
-
+        if (($result['previously_confirmed'] ?? false) === true) {
             return response()->json([
-                'ok' => true,
-                'state' => 'verified',
-                'message' => __('public.verify_success', [
-                    'amount' => number_format((float) $result['amount'], 2),
-                    'currency' => $result['currency'] ?: $event->currency,
-                ]),
-                'amount' => $result['amount'],
-                'request_id' => $result['request_id'],
-            ]);
+                'ok' => false,
+                'state' => 'reference_used',
+                'message' => __('public.verify_reference_used'),
+                'request_id' => $result['request_id'] ?? null,
+            ], 422);
         }
 
         if (($result['amount_matched'] ?? null) === false) {
@@ -102,7 +99,33 @@ class CheckoutController extends Controller
             ]);
         }
 
-        if (($result['verified'] ?? false) === false && in_array(($result['status'] ?? ''), ['pending', 'queued', ''], true)) {
+        if (($result['settlement_matched'] ?? null) === false) {
+            return response()->json([
+                'ok' => false,
+                'state' => 'settlement_mismatch',
+                'message' => __('public.verify_settlement_mismatch'),
+                'amount' => $result['amount'],
+            ]);
+        }
+
+        if (
+            ($result['verified'] ?? false) === true
+            && ($result['amount_matched'] ?? null) === true
+            && ($result['settlement_matched'] ?? null) === true
+        ) {
+            return response()->json([
+                'ok' => true,
+                'state' => 'verified',
+                'message' => __('public.verify_success', [
+                    'amount' => number_format((float) $result['amount'], 2),
+                    'currency' => $result['currency'] ?: $event->currency,
+                ]),
+                'amount' => $result['amount'],
+                'request_id' => $result['request_id'],
+            ]);
+        }
+
+        if (($result['verified'] ?? false) === false && in_array(($result['status'] ?? ''), ['pending', 'queued', null, ''], true)) {
             return response()->json([
                 'ok' => true,
                 'state' => 'pending',
@@ -149,16 +172,11 @@ class CheckoutController extends Controller
             'transaction_reference.required' => 'Enter the bank transaction / receipt ID (or paste the full SMS).',
         ]);
 
-        // Prevent obvious duplicate pending claims with same reference for same company.
-        $duplicate = TicketOrder::query()
-            ->where('company_id', $event->company_id)
-            ->where('transaction_reference', $data['transaction_reference'])
-            ->whereIn('status', [TicketOrder::STATUS_PENDING, TicketOrder::STATUS_PAID])
-            ->exists();
+        $data['transaction_reference'] = VerifyEtClient::normalizeReference($data['transaction_reference']);
 
-        if ($duplicate) {
+        if ($this->transactionReferenceAlreadyUsed($data['transaction_reference'])) {
             return back()->withErrors([
-                'transaction_reference' => 'This transaction ID was already submitted.',
+                'transaction_reference' => __('public.verify_reference_used'),
             ])->withInput();
         }
 
@@ -172,8 +190,43 @@ class CheckoutController extends Controller
 
         $request->session()->put('public_attendee_id', $attendee->id);
 
+        if ($order->isPaid()) {
+            return redirect()->route('public.orders.show', $order->public_code)
+                ->with('status', __('public.order_paid_title'));
+        }
+
         return redirect()->route('public.orders.show', $order->public_code)
             ->with('status', __('public.order_pending_title'));
+    }
+
+    /**
+     * Same bank reference cannot be reused once claimed on a pending/paid order or ticket.
+     */
+    private function transactionReferenceAlreadyUsed(string $reference): bool
+    {
+        $normalized = VerifyEtClient::normalizeReference($reference);
+        if ($normalized === '') {
+            return false;
+        }
+
+        $orderUsed = TicketOrder::query()
+            ->whereIn('status', [TicketOrder::STATUS_PENDING, TicketOrder::STATUS_PAID])
+            ->where(function ($q) use ($reference, $normalized) {
+                $q->where('transaction_reference', $reference)
+                    ->orWhere('transaction_reference', $normalized);
+            })
+            ->exists();
+
+        if ($orderUsed) {
+            return true;
+        }
+
+        return \App\Models\Ticket::query()
+            ->where(function ($q) use ($reference, $normalized) {
+                $q->where('payment_reference', $reference)
+                    ->orWhere('payment_reference', $normalized);
+            })
+            ->exists();
     }
 
     public function show(string $publicCode)

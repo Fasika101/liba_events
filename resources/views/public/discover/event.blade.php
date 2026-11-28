@@ -18,7 +18,10 @@
     @endphp
 
     <article class="mp-card mp-event-hero {{ $event->isExpired() ? 'is-expired' : '' }}">
-        <div class="mp-card-media" @if($photo) style="background-image:url('{{ $photo }}')" @endif>
+        <div class="mp-card-media">
+            @if($photo)
+                <img class="mp-card-media-img" src="{{ $photo }}" alt="{{ $event->title }}" loading="lazy" decoding="async">
+            @endif
             @if($event->isExpired())
                 <span class="mp-expired-ribbon">{{ __('public.expired') }}</span>
             @endif

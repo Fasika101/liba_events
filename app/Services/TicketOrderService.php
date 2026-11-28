@@ -46,6 +46,10 @@ class TicketOrderService
             $attendee->update(['phone' => $buyer['buyer_phone']]);
         }
 
+        if (filled($buyer['transaction_reference'] ?? null)) {
+            $buyer['transaction_reference'] = VerifyEtClient::normalizeReference((string) $buyer['transaction_reference']);
+        }
+
         $order = TicketOrder::create([
             'company_id' => $company->id,
             'event_id' => $event->id,
@@ -117,7 +121,7 @@ class TicketOrderService
         ]);
 
         if ($this->shouldAutoMarkPaid($result)) {
-            return $this->markPaid($order->fresh(), null, 'Auto-verified via Verify.et (amount matched)');
+            return $this->markPaid($order->fresh(), null, 'Auto-verified via Verify.et (amount + account matched)');
         }
 
         return $order->fresh(['event', 'company', 'ticket']);
@@ -125,7 +129,20 @@ class TicketOrderService
 
     public function applyVerifyEtResult(TicketOrder $order, array $payload): TicketOrder
     {
-        $result = $this->verifyEt->interpretResult($payload, (float) $order->amount);
+        $order->loadMissing('company.bankAccounts');
+        $account = $order->company?->bankAccounts
+            ?->where('is_active', true)
+            ->when($order->bank_code, function ($c) use ($order) {
+                return $c->filter(fn ($a) => $a->bank_code === $order->bank_code || $a->bank_name === $order->bank_code);
+            })
+            ->first()
+            ?? $order->company?->bankAccounts?->where('is_active', true)->first();
+
+        $result = $this->verifyEt->interpretResult(
+            $payload,
+            (float) $order->amount,
+            $account?->account_number
+        );
         $statusNote = $this->buildVerifyNote($result, (float) $order->amount);
 
         $order->update([
@@ -135,7 +152,7 @@ class TicketOrderService
         ]);
 
         if ($order->isPending() && $this->shouldAutoMarkPaid($result)) {
-            return $this->markPaid($order->fresh(), null, 'Auto-verified via Verify.et webhook (amount matched)');
+            return $this->markPaid($order->fresh(), null, 'Auto-verified via Verify.et webhook (amount + account matched)');
         }
 
         return $order->fresh(['ticket', 'event']);
@@ -289,13 +306,18 @@ class TicketOrderService
             return false;
         }
 
-        // Require exact amount match when Verify.et returned an amount.
+        // Exact ticket price must match the bank receipt amount.
         if (($result['amount_matched'] ?? null) !== true) {
             return false;
         }
 
-        // If settlement matching was evaluated and failed, do not auto-pay.
-        if (($result['settlement_matched'] ?? null) === false) {
+        // Must be paid into the organization account shown on the event page.
+        if (($result['settlement_matched'] ?? null) !== true) {
+            return false;
+        }
+
+        // Reject receipts already confirmed elsewhere / reused on Verify.et.
+        if (($result['previously_confirmed'] ?? false) === true) {
             return false;
         }
 
@@ -322,6 +344,12 @@ class TicketOrderService
             $parts[] = 'settlement_ok';
         } elseif ($result['settlement_matched'] === false) {
             $parts[] = 'settlement_mismatch';
+        } else {
+            $parts[] = 'settlement_pending';
+        }
+
+        if (($result['previously_confirmed'] ?? false) === true) {
+            $parts[] = 'reference_already_used';
         }
 
         return implode(' | ', $parts);

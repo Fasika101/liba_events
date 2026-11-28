@@ -326,9 +326,25 @@ a { color: inherit; text-decoration: none; }
 .mp-card-media {
     position: relative;
     aspect-ratio: 16 / 10;
+    width: 100%;
+    max-height: none;
+    overflow: hidden;
     background:
         linear-gradient(160deg, rgba(55, 48, 163, 0.45), rgba(79, 110, 247, 0.25)),
-        #1e293b center/cover no-repeat;
+        #1e293b;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.mp-card-media-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
 }
 
 .mp-card-body { padding: 14px 14px 16px; }

@@ -32,7 +32,10 @@
 
             @if($expired)
                 <div class="mp-card is-expired is-disabled" aria-disabled="true">
-                    <div class="mp-card-media" @if($photo) style="background-image:url('{{ $photo }}')" @endif>
+                    <div class="mp-card-media">
+                        @if($photo)
+                            <img class="mp-card-media-img" src="{{ $photo }}" alt="{{ $event->title }}" loading="lazy" decoding="async">
+                        @endif
                         <span class="mp-expired-ribbon">{{ __('public.expired') }}</span>
                     </div>
                     <div class="mp-card-body">
@@ -46,7 +49,11 @@
                 </div>
             @else
                 <a class="mp-card" href="{{ route('public.events.show', $event) }}">
-                    <div class="mp-card-media" @if($photo) style="background-image:url('{{ $photo }}')" @endif></div>
+                    <div class="mp-card-media">
+                        @if($photo)
+                            <img class="mp-card-media-img" src="{{ $photo }}" alt="{{ $event->title }}" loading="lazy" decoding="async">
+                        @endif
+                    </div>
                     <div class="mp-card-body">
                         <h3>{{ $event->title }}</h3>
                         <p class="mp-meta">{{ optional($event->start_at)->format('D, M j · g:i A') }}</p>

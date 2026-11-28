@@ -84,7 +84,11 @@
             @endif
 
             <a class="mp-card" href="{{ route('public.events.show', $event) }}">
-                <div class="mp-card-media" @if($photo) style="background-image:url('{{ $photo }}')" @endif></div>
+                <div class="mp-card-media">
+                    @if($photo)
+                        <img class="mp-card-media-img" src="{{ $photo }}" alt="{{ $event->title }}" loading="lazy" decoding="async">
+                    @endif
+                </div>
                 <div class="mp-card-body">
                     <div class="mp-kicker">{{ $event->company?->name }}</div>
                     <h2>{{ $event->title }}</h2>

@@ -47,6 +47,8 @@ return [
         'api_key' => env('VERIFY_ET_API_KEY'),
         'base_url' => env('VERIFY_ET_BASE_URL', 'https://verify.et'),
         'webhook_secret' => env('VERIFY_ET_WEBHOOK_SECRET'),
+        // Optional override; defaults to APP_URL/webhooks/verify-et
+        'webhook_url' => env('VERIFY_ET_WEBHOOK_URL'),
     ],
 
 ];
